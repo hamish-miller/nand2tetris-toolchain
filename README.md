@@ -8,3 +8,11 @@ An implementation of the Hack Assembler written in Rust.  *(The Elements of Comp
 ```
 hack-assembler <file.asm>
 ```
+
+## Installation
+
+Requires the [Rust Toolchain](https://www.rust-lang.org/tools/install).
+
+```
+cargo install --git https://github.com/hamish-miller/hack-assembler.git
+```
