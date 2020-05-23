@@ -51,11 +51,15 @@ impl Parser {
             return CommandType::A_COMMAND
         }
 
+        if self.line.starts_with("(") && self.line.ends_with(")") {
+            return CommandType::L_COMMAND
+        }
+
         CommandType::C_COMMAND
     }
 
     pub fn symbol(&self) -> String {
-        String::from(self.line.replacen("@", "", 1))
+        String::from(self.line[1..].replacen(")", "", 1))
     }
 
     pub fn dest(&self) -> String {
@@ -98,4 +102,5 @@ impl Parser {
 pub enum CommandType {
     A_COMMAND,
     C_COMMAND,
+    L_COMMAND,
 }
