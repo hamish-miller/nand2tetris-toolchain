@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-static PREDEFINED_SYMBOLS: &'static [(&'static str, u32)] = &[
+static PREDEFINED_SYMBOLS: &'static [(&'static str, u16)] = &[
     ("SP",   0x0000),
     ("LCL",  0x0001),
     ("ARG",  0x0002),
@@ -29,11 +29,11 @@ static PREDEFINED_SYMBOLS: &'static [(&'static str, u32)] = &[
 ];
 
 pub struct SymbolTable {
-    pub hash: HashMap<String, u32>,
+    pub hash: HashMap<String, u16>,
 }
 
 impl SymbolTable {
-    pub const NEXT_AVAILABLE_RAM_ADDRESS: u32 = 16;
+    pub const NEXT_AVAILABLE_RAM_ADDRESS: u16 = 16;
 
     pub fn new() -> Self {
         let mut symboltable = SymbolTable { hash: HashMap::new() };
@@ -46,7 +46,7 @@ impl SymbolTable {
     }
 
     #[allow(non_snake_case)]
-    pub fn addEntry(&mut self, symbol: &str, address: u32) {
+    pub fn addEntry(&mut self, symbol: &str, address: u16) {
         self.hash.insert(symbol.to_string(), address);
     }
 
@@ -55,7 +55,7 @@ impl SymbolTable {
     }
 
     #[allow(non_snake_case)]
-    pub fn GetAddress(&self, symbol: &str) -> u32 {
+    pub fn GetAddress(&self, symbol: &str) -> u16 {
         *self.hash.get(symbol)
             .expect(&format!("KeyError: {}", symbol))
     }

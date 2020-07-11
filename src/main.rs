@@ -65,7 +65,7 @@ fn main() -> Result<(), std::io::Error> {
             CommandType::A_COMMAND => {
                 let symbol = parser.symbol();
 
-                let address = match symbol.parse::<u32>() {
+                let address = match symbol.parse::<u16>() {
                     Ok(address) => address,
                     Err(_) => {
                         if !symbol_table.contains(&symbol) {
