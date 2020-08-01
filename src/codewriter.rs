@@ -22,6 +22,37 @@ fn logical_binary<'a>(cond: &'static str, label: &'a LogicLabel) -> Vec<&'a str>
          "@SP", "M=M-1")
 }
 
+fn push_constant(constant: &str) -> Vec<&str> {
+    vec!(constant, "D=A",
+         "@SP", "A=M", "M=D",
+         "@SP", "M=M+1")
+}
+
+fn push_indirect<'a>(segment: &'a str, index: &'a str) -> Vec<&'a str> {
+    vec!(segment, "D=M", index, "A=D+A", "D=M",
+         "@SP", "A=M", "M=D",
+         "@SP", "M=M+1")
+}
+
+fn push_direct<'a>(register: &'a str) -> Vec<&'a str> {
+    vec!(register, "D=M",
+         "@SP", "A=M", "M=D",
+         "@SP", "M=M+1")
+}
+
+fn pop_indirect<'a>(segment: &'a str, index: &'a str) -> Vec<&'a str> {
+    vec!(segment, "D=M", index, "D=D+A", "@R13", "M=D",
+         "@SP", "M=M-1", "A=M", "D=M",
+         "@R13", "A=M", "M=D")
+}
+
+fn pop_direct<'a>(register: &'a str) -> Vec<&'a str> {
+    vec!(register, "D=A", "@R13", "M=D",
+         "@SP", "M=M-1", "A=M", "D=M",
+         "@R13", "A=M", "M=D")
+}
+
+
 pub struct CodeWriter {
     writer: BufWriter<File>,
     label_maker: LabelGenerator,
@@ -81,15 +112,45 @@ impl CodeWriter {
     }
 
     pub fn writePushPop(&mut self, command: CommandType, segment: String, index: isize) {
-        assert!(segment == "constant", "Other segments not yet implemented.");
-        let a_index = format!("@{}", index);
+        let i = format!("@{}", index);
+        let register: String;
 
         use CommandType::*;
         let (comment, assembly) = match command {
-            C_PUSH => ("push", vec!(a_index.as_str(), "D=A",
-                                    "@SP", "A=M", "M=D",
-                                    "@SP", "M=M+1")),
-            C_POP => unimplemented!("Stage 2: Memory Access"),
+            C_PUSH => ("push", match segment.as_str() {
+                "constant" => push_constant(i.as_str()),
+                "local" => push_indirect("@LCL", i.as_str()),
+                "argument" => push_indirect("@ARG", i.as_str()),
+                "this" => push_indirect("@THIS", i.as_str()),
+                "that" => push_indirect("@THAT", i.as_str()),
+                "pointer" => {
+                    register = format!("@R{}", 3 + index);
+                    push_direct(register.as_str())
+                },
+                "temp" => {
+                    register = format!("@R{}", 5 + index);
+                    push_direct(register.as_str())
+                },
+                "static" => unimplemented!(),
+                _ => panic!("Unknown segment: {}", segment),
+            }),
+            C_POP => ("pop", match segment.as_str() {
+                "constant" => panic!("pop constant is invalid."),
+                "local" => pop_indirect("@LCL", i.as_str()),
+                "argument" => pop_indirect("@ARG", i.as_str()),
+                "this" => pop_indirect("@THIS", i.as_str()),
+                "that" => pop_indirect("@THAT", i.as_str()),
+                "pointer" => {
+                    register = format!("@R{}", 3 + index);
+                    pop_direct(register.as_str())
+                },
+                "temp" => {
+                    register = format!("@R{}", 5 + index);
+                    pop_direct(register.as_str())
+                },
+                "static" => unimplemented!(),
+                _ => panic!("Unknown segment: {}", segment),
+            }),
             _ => panic!("Unexpected CommandType."),
         };
 
