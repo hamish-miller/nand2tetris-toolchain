@@ -1,5 +1,6 @@
 /// Translates VM commands into Hack assembly code.
 
+use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{prelude::*, BufWriter};
 
@@ -40,6 +41,12 @@ fn push_direct<'a>(register: &'a str) -> Vec<&'a str> {
          "@SP", "M=M+1")
 }
 
+fn push_static(static_label: &str) -> Vec<&str> {
+    vec!(static_label, "D=M",
+         "@SP", "A=M", "M=D",
+         "@SP", "M=M+1")
+}
+
 fn pop_indirect<'a>(segment: &'a str, index: &'a str) -> Vec<&'a str> {
     vec!(segment, "D=M", index, "D=D+A", "@R13", "M=D",
          "@SP", "M=M-1", "A=M", "D=M",
@@ -52,9 +59,15 @@ fn pop_direct<'a>(register: &'a str) -> Vec<&'a str> {
          "@R13", "A=M", "M=D")
 }
 
+fn pop_static(static_label: &str) -> Vec<&str> {
+    vec!("@SP", "M=M-1", "A=M", "D=M",
+         static_label, "M=D")
+}
+
 
 pub struct CodeWriter {
     writer: BufWriter<File>,
+    file_name: String,
     label_maker: LabelGenerator,
 }
 
@@ -65,6 +78,7 @@ impl CodeWriter {
     pub fn new(file: File) -> Self {
         let mut codewriter = CodeWriter {
             writer: BufWriter::new(file),
+            file_name: String::new(),
             label_maker: LabelGenerator::new(),
         };
 
@@ -79,9 +93,8 @@ impl CodeWriter {
         codewriter
     }
 
-    #[allow(dead_code)]
-    pub fn setFileName(&mut self, _fileName: String) {
-        unimplemented!("Multiple .vm files not yet supported.");
+    pub fn setFileName(&mut self, fileName: &OsStr) {
+        self.file_name = fileName.to_os_string().into_string().unwrap()
     }
 
     pub fn writeArithmetic(&mut self, command: String) {
@@ -114,6 +127,7 @@ impl CodeWriter {
     pub fn writePushPop(&mut self, command: CommandType, segment: String, index: isize) {
         let i = format!("@{}", index);
         let register: String;
+        let static_label: String;
 
         use CommandType::*;
         let (comment, assembly) = match command {
@@ -131,7 +145,10 @@ impl CodeWriter {
                     register = format!("@R{}", 5 + index);
                     push_direct(register.as_str())
                 },
-                "static" => unimplemented!(),
+                "static" => {
+                    static_label = format!("@{}.{}", self.file_name, index);
+                    push_static(static_label.as_str())
+                }
                 _ => panic!("Unknown segment: {}", segment),
             }),
             C_POP => ("pop", match segment.as_str() {
@@ -148,7 +165,10 @@ impl CodeWriter {
                     register = format!("@R{}", 5 + index);
                     pop_direct(register.as_str())
                 },
-                "static" => unimplemented!(),
+                "static" => {
+                    static_label = format!("@{}.{}", self.file_name, index);
+                    pop_static(static_label.as_str())
+                }
                 _ => panic!("Unknown segment: {}", segment),
             }),
             _ => panic!("Unexpected CommandType."),

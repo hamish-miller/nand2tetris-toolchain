@@ -30,6 +30,7 @@ fn main() -> Result<(), std::io::Error> {
     let mut parser = Parser::new(vm);
     let mut codewriter = CodeWriter::new(asm);
 
+    codewriter.setFileName(vm_path.file_stem().unwrap());
     parser.advance();
 
     while parser.hasMoreCommands() {
