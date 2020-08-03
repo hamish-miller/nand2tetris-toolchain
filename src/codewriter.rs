@@ -193,6 +193,13 @@ impl CodeWriter {
         self.writer.write(b")\n");
     }
 
+    pub fn writeGoto(&mut self, label: String) {
+        if VERBOSE { self.writer.write(b"// goto\n"); };
+
+        self.writer.write(format!("@{}\n", label).as_bytes());
+        self.writer.write(b"0;JMP\n");
+    }
+
     pub fn writeIf(&mut self, label: String) {
         if VERBOSE { self.writer.write(b"// if-goto\n"); };
 
