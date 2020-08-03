@@ -39,6 +39,8 @@ fn main() -> Result<(), std::io::Error> {
             C_ARITHMETIC => codewriter.writeArithmetic(parser.arg1()),
             C_PUSH => codewriter.writePushPop(C_PUSH, parser.arg1(), parser.arg2()),
             C_POP => codewriter.writePushPop(C_POP, parser.arg1(), parser.arg2()),
+            C_LABEL => codewriter.writeLabel(parser.arg1()),
+            C_IF => codewriter.writeIf(parser.arg1()),
             _ => unimplemented!("Stage 2: Memory Access.")
         }
 

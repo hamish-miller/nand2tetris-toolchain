@@ -186,6 +186,25 @@ impl CodeWriter {
         }
     }
 
+    pub fn writeLabel(&mut self, label: String) {
+        if VERBOSE { self.writer.write(b"// label\n"); };
+        self.writer.write(b"(");
+        self.writer.write(label.as_bytes());
+        self.writer.write(b")\n");
+    }
+
+    pub fn writeIf(&mut self, label: String) {
+        if VERBOSE { self.writer.write(b"// if-goto\n"); };
+
+        let l = format!("@{}", label);
+        let assembly = vec!("@SP", "M=M-1", "A=M", "D=M", l.as_str(), "D;JNE");
+
+        for line in assembly.iter() {
+            self.writer.write(line.as_bytes());
+            self.writer.write(b"\n");
+        }
+    }
+
     // Move self prevents use after move
     pub fn close(self) {
     }
