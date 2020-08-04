@@ -84,6 +84,7 @@ impl CodeWriter {
 
         // Initiate stack pointer
         let stack_init = vec!("// stack init", "@256", "D=A", "@SP", "M=D");
+        //let stack_init: Vec<&str> = Vec::new();  // SimpleFunction.vm
 
         for line in stack_init.iter() {
             codewriter.writer.write(line.as_bytes());
@@ -188,9 +189,7 @@ impl CodeWriter {
 
     pub fn writeLabel(&mut self, label: String) {
         if VERBOSE { self.writer.write(b"// label\n"); };
-        self.writer.write(b"(");
-        self.writer.write(label.as_bytes());
-        self.writer.write(b")\n");
+        self.writer.write(format!("({})\n", label).as_bytes());
     }
 
     pub fn writeGoto(&mut self, label: String) {
@@ -205,6 +204,41 @@ impl CodeWriter {
 
         let l = format!("@{}", label);
         let assembly = vec!("@SP", "M=M-1", "A=M", "D=M", l.as_str(), "D;JNE");
+
+        for line in assembly.iter() {
+            self.writer.write(line.as_bytes());
+            self.writer.write(b"\n");
+        }
+    }
+
+    pub fn writeFunction(&mut self, functionName: String, numLocals: isize) {
+        if VERBOSE { self.writer.write(b"// function\n"); };
+        const PUSH_0: [&str; 4] = ["@SP", "M=M+1", "A=M-1", "M=0"];
+
+        self.writer.write(format!("({})\n", functionName).as_bytes());
+
+        for _ in 0..numLocals {
+            for line in PUSH_0.iter() {
+                self.writer.write(line.as_bytes());
+                self.writer.write(b"\n");
+            }
+        }
+    }
+
+    pub fn writeReturn(&mut self) {
+        if VERBOSE { self.writer.write(b"// return\n"); };
+
+        let (frame, ret) = ("@R13", "@R14");
+        let assembly = vec!(
+            "@LCL", "D=M", frame, "M=D", "@5", "A=D-A", "D=M", ret, "M=D",
+            "@SP", "M=M-1", "A=M", "D=M", "@ARG", "A=M", "M=D",
+            "@ARG", "D=M+1", "@SP", "M=D",
+            frame, "AM=M-1", "D=M", "@THAT", "M=D",
+            frame, "AM=M-1", "D=M", "@THIS", "M=D",
+            frame, "AM=M-1", "D=M", "@ARG", "M=D",
+            frame, "AM=M-1", "D=M", "@LCL", "M=D",
+            ret, "A=M", "0;JMP"
+        );
 
         for line in assembly.iter() {
             self.writer.write(line.as_bytes());

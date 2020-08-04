@@ -42,6 +42,8 @@ fn main() -> Result<(), std::io::Error> {
             C_LABEL => codewriter.writeLabel(parser.arg1()),
             C_GOTO => codewriter.writeGoto(parser.arg1()),
             C_IF => codewriter.writeIf(parser.arg1()),
+            C_FUNCTION => codewriter.writeFunction(parser.arg1(), parser.arg2()),
+            C_RETURN => codewriter.writeReturn(),
             _ => unimplemented!("Stage 2: Memory Access.")
         }
 
