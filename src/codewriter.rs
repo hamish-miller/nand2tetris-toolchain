@@ -3,6 +3,7 @@
 use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{prelude::*, BufWriter};
+use std::iter::Zip;
 
 use crate::parser::CommandType;
 
@@ -16,10 +17,11 @@ fn arithmetic_unary(op: &str) -> Vec<&str> {
     vec!("@SP", "A=M-1", op)
 }
 
-fn logical_binary<'a>(cond: &'static str, label: &'a LogicLabel) -> Vec<&'a str> {
-    vec!("@SP", "A=M-1", "D=M", "A=A-1", "D=M-D", &label.jump_t, cond,
-         "@SP", "A=M-1", "A=A-1", "M=0", &label.jump_f, "0;JMP", &label.dest_t,
-         "@SP", "A=M-1", "A=A-1", "M=-1", &label.dest_f,
+fn logical_binary<'a>(cond: &'static str, label_pair: &'a (Label, Label)) -> Vec<&'a str> {
+    let (label_t, label_f) = label_pair;
+    vec!("@SP", "A=M-1", "D=M", "A=A-1", "D=M-D", &label_t.jump, cond,
+         "@SP", "A=M-1", "A=A-1", "M=0", &label_f.jump, "0;JMP", &label_t.dest,
+         "@SP", "A=M-1", "A=A-1", "M=-1", &label_f.dest,
          "@SP", "M=M-1")
 }
 
@@ -68,8 +70,8 @@ fn pop_static(static_label: &str) -> Vec<&str> {
 pub struct CodeWriter {
     writer: BufWriter<File>,
     file_name: String,
-    label_maker: LabelGenerator,
-    return_label_maker: ReturnLabelGenerator,
+    logic_label_gen: LogicLabelGenerator,
+    return_label_gen: LabelGenerator,
 }
 
 impl CodeWriter {
@@ -80,8 +82,8 @@ impl CodeWriter {
         let mut codewriter = CodeWriter {
             writer: BufWriter::new(file),
             file_name: String::new(),
-            label_maker: LabelGenerator::new(),
-            return_label_maker: ReturnLabelGenerator::new(),
+            logic_label_gen: LogicLabelGenerator::new(),
+            return_label_gen: LabelGenerator::new(String::from("RETURN")),
         };
 
         codewriter.writeInit();
@@ -110,7 +112,7 @@ impl CodeWriter {
     }
 
     pub fn writeArithmetic(&mut self, command: String) {
-        let label = self.label_maker.next().unwrap();
+        let label = self.logic_label_gen.next().unwrap();
         let assembly = match command.as_str() {
             "add" => arithmetic_binary("M=M+D"),
             "sub" => arithmetic_binary("M=M-D"),
@@ -261,7 +263,7 @@ impl CodeWriter {
     pub fn writeCall(&mut self, functionName: String, numArgs: isize) {
         if VERBOSE { self.writer.write(b"// call\n"); };
 
-        let r = self.return_label_maker.next().unwrap();
+        let r = self.return_label_gen.next().unwrap();
         let f = format!("@{}", functionName);
         let n = format!("@{}", numArgs + 5);
 
@@ -289,75 +291,58 @@ impl CodeWriter {
 }
 
 #[derive(PartialEq)]
-struct LogicLabel {
-    dest_t: String,
-    dest_f: String,
-    jump_t: String,
-    jump_f: String,
+struct Label {
+    dest: String,
+    jump: String,
 }
 
-impl LogicLabel {
-    pub fn new(suffix: usize) -> Self {
-        LogicLabel {
-            dest_t: format!("(JUMP_TRUE_{})", suffix),
-            dest_f: format!("(JUMP_FALSE_{})", suffix),
-            jump_t: format!("@JUMP_TRUE_{}", suffix),
-            jump_f: format!("@JUMP_FALSE_{}", suffix),
+impl Label {
+    pub fn new(prefix: String, suffix: usize) -> Self {
+        Label {
+            dest: format!("({}_{})", prefix, suffix),
+            jump: format!("@{}_{}", prefix, suffix),
         }
     }
 }
 
 struct LabelGenerator {
+    prefix: String,
     count: usize,
 }
 
 impl LabelGenerator {
-    fn new() -> Self {
-        LabelGenerator { count: 0 }
+    fn new(prefix: String) -> Self {
+        LabelGenerator { prefix: prefix, count: 0 }
     }
 }
 
 impl Iterator for LabelGenerator {
-    type Item = LogicLabel;
+    type Item = Label;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.count += 1;
-        Some(LogicLabel::new(self.count))
+        Some(Label::new(self.prefix.clone(), self.count))
     }
 }
 
-// Copy/Paste initially
-#[derive(PartialEq)]
-struct ReturnLabel {
-    dest: String,
-    jump: String,
+struct LogicLabelGenerator {
+    z: Zip<LabelGenerator, LabelGenerator>,
 }
 
-impl ReturnLabel {
-    pub fn new(suffix: usize) -> Self {
-        ReturnLabel {
-            dest: format!("(RETURN_{})", suffix),
-            jump: format!("@RETURN_{}", suffix),
-        }
-    }
-}
-
-struct ReturnLabelGenerator {
-    count: usize,
-}
-
-impl ReturnLabelGenerator {
+impl LogicLabelGenerator {
     fn new() -> Self {
-        ReturnLabelGenerator { count: 0 }
+        let t = LabelGenerator::new(String::from("TRUE"));
+        let f = LabelGenerator::new(String::from("FALSE"));
+
+        LogicLabelGenerator { z: t.zip(f) }
     }
 }
 
-impl Iterator for ReturnLabelGenerator {
-    type Item = ReturnLabel;
+impl Iterator for LogicLabelGenerator {
+    type Item = (Label, Label);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.count += 1;
-        Some(ReturnLabel::new(self.count))
+        self.z.next()
     }
 }
 
@@ -367,11 +352,22 @@ mod tests {
 
     #[test]
     fn test_label_generator_creates_unique_labels() {
-        let mut generator = LabelGenerator::new();
+        let mut generator = LabelGenerator::new("foo".to_string());
 
         let label_1 = generator.next();
         let label_2 = generator.next();
 
         assert!(label_1 != label_2);
+    }
+
+    #[test]
+    fn test_logic_label_generator_keeps_true_and_false_synced() {
+        let mut generator = LogicLabelGenerator::new();
+
+        let (t, f) = generator.next().unwrap();
+        let t_count = t.jump.split('_').nth(1);
+        let f_count = f.jump.split('_').nth(1);
+
+        assert_eq!(t_count, f_count);
     }
 }
