@@ -69,6 +69,7 @@ pub struct CodeWriter {
     writer: BufWriter<File>,
     file_name: String,
     label_maker: LabelGenerator,
+    return_label_maker: ReturnLabelGenerator,
 }
 
 impl CodeWriter {
@@ -80,6 +81,7 @@ impl CodeWriter {
             writer: BufWriter::new(file),
             file_name: String::new(),
             label_maker: LabelGenerator::new(),
+            return_label_maker: ReturnLabelGenerator::new(),
         };
 
         codewriter.writeInit();
@@ -239,7 +241,8 @@ impl CodeWriter {
 
         let (frame, ret) = ("@R13", "@R14");
         let assembly = vec!(
-            "@LCL", "D=M", frame, "M=D", "@5", "A=D-A", "D=M", ret, "M=D",
+            "@LCL", "D=M", frame, "M=D",
+            "@5", "A=D-A", "D=M", ret, "M=D",
             "@SP", "M=M-1", "A=M", "D=M", "@ARG", "A=M", "M=D",
             "@ARG", "D=M+1", "@SP", "M=D",
             frame, "AM=M-1", "D=M", "@THAT", "M=D",
@@ -255,8 +258,29 @@ impl CodeWriter {
         }
     }
 
-    pub fn writeCall(&mut self, _functionName: String, _numArgs: isize) {
-        if VERBOSE { self.writer.write(b"// call (TODO)\n"); };
+    pub fn writeCall(&mut self, functionName: String, numArgs: isize) {
+        if VERBOSE { self.writer.write(b"// call\n"); };
+
+        let r = self.return_label_maker.next().unwrap();
+        let f = format!("@{}", functionName);
+        let n = format!("@{}", numArgs + 5);
+
+        let call = vec!(
+            r.jump.as_str(), "D=A", "@SP", "M=M+1", "A=M-1", "M=D",
+            "@LCL", "D=M", "@SP", "M=M+1", "A=M-1", "M=D",
+            "@ARG", "D=M", "@SP", "M=M+1", "A=M-1", "M=D",
+            "@THIS", "D=M", "@SP", "M=M+1", "A=M-1", "M=D",
+            "@THAT", "D=M", "@SP", "M=M+1", "A=M-1", "M=D",
+            "@SP", "D=M", n.as_str(), "D=D-A", "@ARG", "M=D",
+            "@SP", "D=M", "@LCL", "M=D",
+            f.as_str(), "0;JMP",
+            r.dest.as_str(),
+        );
+
+        for line in call.iter() {
+            self.writer.write(line.as_bytes());
+            self.writer.write(b"\n");
+        }
     }
 
     // Move self prevents use after move
@@ -299,6 +323,41 @@ impl Iterator for LabelGenerator {
     fn next(&mut self) -> Option<Self::Item> {
         self.count += 1;
         Some(LogicLabel::new(self.count))
+    }
+}
+
+// Copy/Paste initially
+#[derive(PartialEq)]
+struct ReturnLabel {
+    dest: String,
+    jump: String,
+}
+
+impl ReturnLabel {
+    pub fn new(suffix: usize) -> Self {
+        ReturnLabel {
+            dest: format!("(RETURN_{})", suffix),
+            jump: format!("@RETURN_{}", suffix),
+        }
+    }
+}
+
+struct ReturnLabelGenerator {
+    count: usize,
+}
+
+impl ReturnLabelGenerator {
+    fn new() -> Self {
+        ReturnLabelGenerator { count: 0 }
+    }
+}
+
+impl Iterator for ReturnLabelGenerator {
+    type Item = ReturnLabel;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.count += 1;
+        Some(ReturnLabel::new(self.count))
     }
 }
 
