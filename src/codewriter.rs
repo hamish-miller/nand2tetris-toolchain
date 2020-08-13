@@ -82,20 +82,29 @@ impl CodeWriter {
             label_maker: LabelGenerator::new(),
         };
 
-        // Initiate stack pointer
-        let stack_init = vec!("// stack init", "@256", "D=A", "@SP", "M=D");
-        //let stack_init: Vec<&str> = Vec::new();  // SimpleFunction.vm
-
-        for line in stack_init.iter() {
-            codewriter.writer.write(line.as_bytes());
-            codewriter.writer.write(b"\n");
-        }
-
+        codewriter.writeInit();
         codewriter
     }
 
     pub fn setFileName(&mut self, fileName: &OsStr) {
-        self.file_name = fileName.to_os_string().into_string().unwrap()
+        self.file_name = fileName.to_os_string().into_string().unwrap();
+        if VERBOSE {
+            self.writer.write(b"// FILE: ");
+            self.writer.write(self.file_name.as_bytes());
+            self.writer.write(b"\n");
+        };
+    }
+
+    pub fn writeInit(&mut self) {
+        if VERBOSE { self.writer.write(b"// stack_init\n"); };
+        let stack_init = vec!("@256", "D=A", "@SP", "M=D");
+
+        for line in stack_init.iter() {
+            self.writer.write(line.as_bytes());
+            self.writer.write(b"\n");
+        }
+
+        self.writeCall("Sys.init".to_string(), 0);
     }
 
     pub fn writeArithmetic(&mut self, command: String) {
@@ -244,6 +253,10 @@ impl CodeWriter {
             self.writer.write(line.as_bytes());
             self.writer.write(b"\n");
         }
+    }
+
+    pub fn writeCall(&mut self, _functionName: String, _numArgs: isize) {
+        if VERBOSE { self.writer.write(b"// call (TODO)\n"); };
     }
 
     // Move self prevents use after move
