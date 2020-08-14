@@ -14,5 +14,5 @@ hack-assembler <file.asm>
 Requires the [Rust Toolchain](https://www.rust-lang.org/tools/install).
 
 ```
-cargo install --git https://github.com/hamish-miller/hack-assembler.git
+cargo install --git https://github.com/hamish-miller/nand2tetris-toolchain hack-assembler
 ```
