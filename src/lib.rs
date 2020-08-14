@@ -16,8 +16,7 @@ pub fn assemble(assembly_path: &Path) -> Result<(), std::io::Error> {
     let mut symbol_table = SymbolTable::new();
 
     // First Pass
-    let assembly = fs::File::open(assembly_path)
-        .expect("Failed to read file.");
+    let assembly = fs::File::open(assembly_path)?;
 
     let mut parser = Parser::new(assembly);
     let mut rom_address = 0;
@@ -36,11 +35,8 @@ pub fn assemble(assembly_path: &Path) -> Result<(), std::io::Error> {
     }
 
     // Second Pass
-    let assembly = fs::File::open(assembly_path)
-        .expect("Failed to read file.");
-
-    let hack = fs::File::create(hack_path.file_name().unwrap())
-        .expect("Failed to create file.");
+    let assembly = fs::File::open(assembly_path)?;
+    let hack = fs::File::create(hack_path)?;
 
     let mut parser = Parser::new(assembly);
     let mut writer = BufWriter::new(hack);
