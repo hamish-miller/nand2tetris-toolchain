@@ -114,7 +114,7 @@ impl CodeWriter {
     pub fn writeArithmetic(&mut self, command: String) {
         let label = self.logic_label_gen.next().unwrap();
         let assembly = match command.as_str() {
-            "add" => arithmetic_binary("M=M+D"),
+            "add" => arithmetic_binary("M=D+M"),
             "sub" => arithmetic_binary("M=M-D"),
             "neg" => arithmetic_unary("M=-M"),
             "eq" => logical_binary("D;JEQ", &label),
