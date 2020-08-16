@@ -77,8 +77,7 @@ pub fn assemble(assembly_path: &Path) -> Result<(), std::io::Error> {
         // println!("{:<5} -> {}", parser.line, binary);
 
         if let Some(binary) = binary {
-            writer.write(binary.as_bytes())?;
-            writer.write("\n".as_bytes())?;
+            writeln!(&mut writer, "{}", binary)?;
         }
 
         parser.advance();

@@ -76,7 +76,7 @@ pub struct CodeWriter {
 
 impl CodeWriter {
     #![allow(non_snake_case)]  // Contract pre-specified
-    #![allow(unused_must_use)] // Ignore writer.write Result
+    #![allow(unused_must_use)] // Ignore writeln! Result
 
     pub fn new(file: File) -> Self {
         let mut codewriter = CodeWriter {
@@ -92,20 +92,15 @@ impl CodeWriter {
 
     pub fn setFileName(&mut self, fileName: &OsStr) {
         self.file_name = fileName.to_os_string().into_string().unwrap();
-        if VERBOSE {
-            self.writer.write(b"// FILE: ");
-            self.writer.write(self.file_name.as_bytes());
-            self.writer.write(b"\n");
-        };
+        if VERBOSE { writeln!(&mut self.writer, "// FILE: {}", self.file_name); }
     }
 
     pub fn writeInit(&mut self) {
-        if VERBOSE { self.writer.write(b"// stack_init\n"); };
+        if VERBOSE { writeln!(&mut self.writer, "// stack_init"); }
         let stack_init = vec!("@256", "D=A", "@SP", "M=D");
 
         for line in stack_init.iter() {
-            self.writer.write(line.as_bytes());
-            self.writer.write(b"\n");
+            writeln!(&mut self.writer, "{}", line);
         }
 
         self.writeCall("Sys.init".to_string(), 0);
@@ -126,15 +121,10 @@ impl CodeWriter {
             _ => panic!("Unexpected Arithmetic Command: {}", command),
         };
 
-        if VERBOSE {
-            self.writer.write(b"// ");
-            self.writer.write(command.as_bytes());
-            self.writer.write(b"\n");
-        }
+        if VERBOSE { writeln!(&mut self.writer, "// {}", command); }
 
         for line in assembly.iter() {
-            self.writer.write(line.as_bytes());
-            self.writer.write(b"\n");
+            writeln!(&mut self.writer, "{}", line);
         }
     }
 
@@ -188,58 +178,51 @@ impl CodeWriter {
             _ => panic!("Unexpected CommandType."),
         };
 
-        if VERBOSE {
-            self.writer.write(b"// ");
-            self.writer.write(comment.as_bytes());
-            self.writer.write(b"\n");
-        }
+        if VERBOSE { writeln!(&mut self.writer, "// {}", comment); }
 
         for line in assembly.iter() {
-            self.writer.write(line.as_bytes());
-            self.writer.write(b"\n");
+            writeln!(&mut self.writer, "{}", line);
         }
     }
 
     pub fn writeLabel(&mut self, label: String) {
-        if VERBOSE { self.writer.write(b"// label\n"); };
-        self.writer.write(format!("({})\n", label).as_bytes());
+        if VERBOSE { writeln!(&mut self.writer, "// label"); }
+        writeln!(&mut self.writer, "({})", label);
     }
 
     pub fn writeGoto(&mut self, label: String) {
-        if VERBOSE { self.writer.write(b"// goto\n"); };
+        if VERBOSE { writeln!(&mut self.writer, "// goto"); }
 
-        self.writer.write(format!("@{}\n", label).as_bytes());
-        self.writer.write(b"0;JMP\n");
+        writeln!(&mut self.writer, "@{}", label);
+        writeln!(&mut self.writer, "0;JMP");
     }
 
     pub fn writeIf(&mut self, label: String) {
-        if VERBOSE { self.writer.write(b"// if-goto\n"); };
+        if VERBOSE { writeln!(&mut self.writer, "// if-goto"); }
 
         let l = format!("@{}", label);
         let assembly = vec!("@SP", "M=M-1", "A=M", "D=M", l.as_str(), "D;JNE");
 
         for line in assembly.iter() {
-            self.writer.write(line.as_bytes());
-            self.writer.write(b"\n");
+            writeln!(&mut self.writer, "{}", line);
         }
     }
 
     pub fn writeFunction(&mut self, functionName: String, numLocals: isize) {
-        if VERBOSE { self.writer.write(b"// function\n"); };
+        if VERBOSE { writeln!(&mut self.writer, "// function"); }
         const PUSH_0: [&str; 4] = ["@SP", "M=M+1", "A=M-1", "M=0"];
 
-        self.writer.write(format!("({})\n", functionName).as_bytes());
+        writeln!(&mut self.writer, "({})", functionName);
 
         for _ in 0..numLocals {
             for line in PUSH_0.iter() {
-                self.writer.write(line.as_bytes());
-                self.writer.write(b"\n");
+                writeln!(&mut self.writer, "{}", line);
             }
         }
     }
 
     pub fn writeReturn(&mut self) {
-        if VERBOSE { self.writer.write(b"// return\n"); };
+        if VERBOSE { writeln!(&mut self.writer, "// return"); }
 
         let (frame, ret) = ("@R13", "@R14");
         let assembly = vec!(
@@ -255,13 +238,12 @@ impl CodeWriter {
         );
 
         for line in assembly.iter() {
-            self.writer.write(line.as_bytes());
-            self.writer.write(b"\n");
+            writeln!(&mut self.writer, "{}", line);
         }
     }
 
     pub fn writeCall(&mut self, functionName: String, numArgs: isize) {
-        if VERBOSE { self.writer.write(b"// call\n"); };
+        if VERBOSE { writeln!(&mut self.writer, "// call"); }
 
         let r = self.return_label_gen.next().unwrap();
         let f = format!("@{}", functionName);
@@ -280,8 +262,7 @@ impl CodeWriter {
         );
 
         for line in call.iter() {
-            self.writer.write(line.as_bytes());
-            self.writer.write(b"\n");
+            writeln!(&mut self.writer, "{}", line);
         }
     }
 
