@@ -11,12 +11,11 @@ mod symboltable;
 use parser::{Parser, CommandType};
 use symboltable::SymbolTable;
 
-pub fn assemble(assembly_path: &Path) -> Result<(), std::io::Error> {
-    let hack_path = assembly_path.with_extension("hack");
+pub fn assemble(src_asm: &Path, dst_hack: &Path) -> Result<(), std::io::Error> {
     let mut symbol_table = SymbolTable::new();
 
     // First Pass
-    let assembly = fs::File::open(assembly_path)?;
+    let assembly = fs::File::open(src_asm)?;
 
     let mut parser = Parser::new(assembly);
     let mut rom_address = 0;
@@ -35,8 +34,8 @@ pub fn assemble(assembly_path: &Path) -> Result<(), std::io::Error> {
     }
 
     // Second Pass
-    let assembly = fs::File::open(assembly_path)?;
-    let hack = fs::File::create(hack_path)?;
+    let assembly = fs::File::open(src_asm)?;
+    let hack = fs::File::create(dst_hack)?;
 
     let mut parser = Parser::new(assembly);
     let mut writer = BufWriter::new(hack);

@@ -16,5 +16,8 @@ fn main() -> Result<(), std::io::Error> {
         std::process::exit(1);
     });
 
-    assembler::assemble(Path::new(arg))
+    let path_asm = Path::new(arg);
+    let path_hack = path_asm.with_extension("hack");
+
+    assembler::assemble(path_asm, &path_hack)
 }
