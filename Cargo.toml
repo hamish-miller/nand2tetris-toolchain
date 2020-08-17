@@ -2,4 +2,5 @@
 members = [
   "hack-assembler",
   "vm-translator",
+  "jack-compiler",
 ]
