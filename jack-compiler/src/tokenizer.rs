@@ -71,11 +71,13 @@ impl FromStr for Comment {
     type Err = ParseError;
 
     fn from_str(code: &str) -> Result<Self, Self::Err> {
-        match &code[0..2] {
-            "//" => Ok(Comment { length: code.find('\n').unwrap() }),
-            "/*" => Ok(Comment { length: code.find("*/").unwrap() + 2 }),
-            _ => Err(Self::Err {}),
-        }
+        let l = match &code[0..2] {
+            "//" => code.find('\n').unwrap_or_else(|| code.len()),
+            "/*" => code.find("*/").expect("'*/' not found.") + 2,
+            _ => return Err(Self::Err {}),
+        };
+
+        Ok(Comment { length: l })
     }
 }
 
