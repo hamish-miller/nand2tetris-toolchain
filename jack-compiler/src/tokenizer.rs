@@ -58,10 +58,10 @@ impl FromStr for Whitespace {
     type Err = ParseError;
 
     fn from_str(code: &str) -> Result<Self, Self::Err> {
-        if code.chars().next().unwrap().is_whitespace() {
-            Ok(Whitespace { length: code.find(|c: char| !c.is_whitespace()).unwrap() })
-        } else {
-            Err(Self::Err {})
+        match code.find(|c: char| !c.is_whitespace()) {
+            Some(0) => Err(Self::Err {}),
+            Some(l) => Ok(Whitespace { length: l }),
+            None => Ok(Whitespace { length: code.len() }),
         }
     }
 }
