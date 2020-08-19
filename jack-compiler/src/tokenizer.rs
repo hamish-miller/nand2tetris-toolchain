@@ -132,7 +132,7 @@ impl Len for Token {
 }
 
 #[derive(Debug)]
-struct Keyword { inner: String }
+struct Keyword(String);
 const KEYWORDS: [&'static str; 21] = [
     "class", "constructor", "function",
     "method", "field", "static", "var",
@@ -148,7 +148,7 @@ impl FromStr for Keyword {
         let word = code.split_whitespace().next().unwrap();
 
         if KEYWORDS.contains(&word) {
-            Ok(Keyword {inner: word.to_string()})
+            Ok(Keyword(word.to_string()))
         } else {
             Err(Self::Err {})
         }
@@ -156,11 +156,11 @@ impl FromStr for Keyword {
     }
 }
 
-impl Len for Keyword { fn len(&self) -> usize { self.inner.len() } }
+impl Len for Keyword { fn len(&self) -> usize { self.0.len() } }
 
 
 #[derive(Debug)]
-struct Symbol { inner: char }
+struct Symbol(char);
 const SYMBOLS: [char; 19] = [
     '{', '}', '(', ')', '[', ']', '.',
     ',', ';', '+', '-', '*', '/', '&',
@@ -174,7 +174,7 @@ impl FromStr for Symbol {
         let c = code.chars().next().unwrap();
 
         if SYMBOLS.contains(&c) {
-            Ok(Symbol {inner: c})
+            Ok(Symbol(c))
         } else {
             Err(Self::Err {})
         }
@@ -185,7 +185,7 @@ impl FromStr for Symbol {
 impl Len for Symbol { fn len(&self) -> usize { 1 } }
 
 #[derive(Debug)]
-struct Identifier { inner: String }
+struct Identifier(String);
 
 impl FromStr for Identifier {
     type Err = ParseError;
@@ -196,7 +196,7 @@ impl FromStr for Identifier {
 
         if c.is_ascii_alphabetic() || c == '_' {
             let until = code.find(non_ascii).unwrap();
-            Ok(Identifier {inner: code[..until].to_string()})
+            Ok(Identifier(code[..until].to_string()))
         } else {
             Err(Self::Err {})
         }
@@ -207,7 +207,7 @@ impl FromStr for Identifier {
 impl Len for Identifier { fn len(&self) -> usize { self.inner.len() } }
 
 #[derive(Debug)]
-struct IntConst { inner: u16 }
+struct IntConst(u16);
 
 impl FromStr for IntConst {
     type Err = ParseError;
@@ -218,17 +218,17 @@ impl FromStr for IntConst {
 
         if c.is_ascii_digit() {
             let until = code.find(non_digit).unwrap();
-            Ok(IntConst { inner: code[..until].parse::<u16>().unwrap() })
+            Ok(IntConst(code[..until].parse::<u16>().unwrap()))
         } else {
             Err(Self::Err {})
         }
     }
 }
 
-impl Len for IntConst { fn len(&self) -> usize { self.inner.to_string().chars().count() } }
+impl Len for IntConst { fn len(&self) -> usize { self.0.to_string().chars().count() } }
 
 #[derive(Debug)]
-struct StringConst { inner: String }
+struct StringConst(String);
 
 impl FromStr for StringConst {
     type Err = ParseError;
@@ -236,11 +236,11 @@ impl FromStr for StringConst {
     fn from_str(code: &str) -> Result<Self, Self::Err> {
         if code.chars().next() == Some('"') {
             let until = code[1..].find('"').unwrap() + 1;
-            Ok(StringConst { inner: code[1..until].to_string() })
+            Ok(StringConst(code[1..until].to_string()))
         } else {
             Err(Self::Err {})
         }
     }
 }
 
-impl Len for StringConst { fn len(&self) -> usize { self.inner.len() + 2 } }
+impl Len for StringConst { fn len(&self) -> usize { self.0.len() + 2 } }
