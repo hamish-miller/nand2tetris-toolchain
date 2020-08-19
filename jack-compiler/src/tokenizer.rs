@@ -51,8 +51,6 @@ impl JackTokenizer {
     }
 }
 
-trait Len { fn len(&self) -> usize; }
-
 pub struct ParseError;
 
 struct Whitespace { length: usize }
@@ -118,15 +116,15 @@ impl FromStr for Token {
     }
 }
 
-impl Len for Token {
+impl Token {
     fn len(&self) -> usize {
         use Token::*;
         match self {
-            Keyword(x) => x.len(),
-            Symbol(x) => x.len(),
-            Identifier(x) => x.len(),
-            IntConst(x) => x.len(),
-            StringConst(x) => x.len(),
+            Keyword(k) => k.0.len(),
+            Symbol(_) => 1,
+            Identifier(i) => i.0.len(),
+            IntConst(i) => i.0.to_string().chars().count(),
+            StringConst(s) => s.0.len() + 2,
         }
     }
 }
@@ -156,8 +154,6 @@ impl FromStr for Keyword {
     }
 }
 
-impl Len for Keyword { fn len(&self) -> usize { self.0.len() } }
-
 
 #[derive(Debug)]
 struct Symbol(char);
@@ -182,8 +178,6 @@ impl FromStr for Symbol {
     }
 }
 
-impl Len for Symbol { fn len(&self) -> usize { 1 } }
-
 #[derive(Debug)]
 struct Identifier(String);
 
@@ -204,7 +198,6 @@ impl FromStr for Identifier {
     }
 }
 
-impl Len for Identifier { fn len(&self) -> usize { self.inner.len() } }
 
 #[derive(Debug)]
 struct IntConst(u16);
@@ -225,7 +218,6 @@ impl FromStr for IntConst {
     }
 }
 
-impl Len for IntConst { fn len(&self) -> usize { self.0.to_string().chars().count() } }
 
 #[derive(Debug)]
 struct StringConst(String);
@@ -242,5 +234,3 @@ impl FromStr for StringConst {
         }
     }
 }
-
-impl Len for StringConst { fn len(&self) -> usize { self.0.len() + 2 } }
