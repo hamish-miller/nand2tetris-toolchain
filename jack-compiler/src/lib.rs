@@ -7,15 +7,10 @@ mod tokenizer;
 use tokenizer::JackTokenizer;
 
 pub fn analyze(src_jack: &Path, _dst_xml: &Path) -> Result<(), std::io::Error> {
-    let mut tokenizer = JackTokenizer::new(src_jack);
-    tokenizer.advance();
+    let tokenizer = JackTokenizer::new(src_jack);
 
-    while tokenizer.hasMoreTokens() {
-        tokenizer.advance();
-
-        if tokenizer.token.is_some() {
-            println!("{:?}", tokenizer.token.as_ref().unwrap());
-        }
+    for token in tokenizer {
+        println!("{:?}", token);
     }
 
     Ok(())

@@ -1,6 +1,7 @@
 /// JackTokenizer: Translate input stream into Jack-language tokens
 
 use std::fs;
+use std::mem;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -21,12 +22,12 @@ impl JackTokenizer {
         }
     }
 
-    pub fn hasMoreTokens(&self) -> bool {
+    fn hasMoreTokens(&self) -> bool {
         let unparsed = &self.source[self.cursor..];
         !(unparsed == "\n" || unparsed.is_empty())
     }
 
-    pub fn advance(&mut self) {
+    fn advance(&mut self) {
         let unparsed = &self.source[self.cursor..];
 
         if let Ok(whitespace) = unparsed.parse::<Whitespace>() {
@@ -48,6 +49,22 @@ impl JackTokenizer {
         }
 
         panic!("Failed to parse: {}", unparsed.lines().next().unwrap());
+    }
+}
+
+impl Iterator for JackTokenizer {
+    type Item = Token;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.hasMoreTokens() {
+            self.advance();
+
+            if self.token.is_some() {
+                return mem::replace(&mut self.token, None)
+            }
+        }
+
+        None
     }
 }
 
