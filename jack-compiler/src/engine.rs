@@ -74,10 +74,10 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
     }
 
     fn writeType(&mut self) {
-        const TYPES: [&str; 3] = ["int", "char", "boolean"];
+        const PRIMITIVES: [&str; 4] = ["int", "char", "boolean", "void"];
         let t = self.token();
         match t.keyword() {
-            Some(k) if TYPES.contains(&k) => self.writeKeyword(k),
+            Some(k) if PRIMITIVES.contains(&k) => self.writeKeyword(k),
             _ => match t.identifier() {
                Some(_) => { self.cache(t); self.writeIdentifier(); },
                _ => self.cache(t),
@@ -146,10 +146,25 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         match t.keyword() {
             Some(s) if KEYWORDS.contains(&s) => {
                 self.openNonTerminal("subroutineDec");
-                //
+                self.writeKeyword(s);
+
+                self.writeType();
+                self.writeIdentifier();
+
+                self.writeSymbol('(');
+                self.compileParameterList();
+                self.writeSymbol(')');
+
+                self.writeSymbol('{');
+                // subRoutineBody
+                self.writeSymbol('}');
                 self.closeNonTerminal("subroutineDec");
             },
             _ => self.cache(t),
         }
+    }
+
+    /// ((type varName) (',' type varName)*)?
+    fn compileParameterList(&mut self) {
     }
 }

@@ -189,3 +189,61 @@ class Foo {
 
     assert_eq!(out, xml);
 }
+
+
+#[test]
+fn test_compiler_nop_class_subroutine_variants() {
+    let jack =
+"\
+class Foo {
+    constructor Foo new() {}
+    function void bar() {}
+    method void baz() {}
+}
+";
+    let xml =
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>constructor</keyword>
+<identifier>Foo</identifier>
+<identifier>new</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<subroutineDec>
+<keyword>method</keyword>
+<keyword>void</keyword>
+<identifier>baz</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+";
+
+    let t = JackTokenizer::new(&jack);
+    let mut w = Vec::new();
+    let mut e = CompilationEngine::new(t, &mut w);
+
+    e.compile();
+    let out = std::str::from_utf8(&w).unwrap();
+
+    assert_eq!(out, xml);
+}
