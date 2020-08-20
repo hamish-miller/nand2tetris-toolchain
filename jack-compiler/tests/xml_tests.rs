@@ -27,15 +27,14 @@ fn test_compiler_empty_class() {
     assert_eq!(out, xml);
 }
 
+
 #[test]
-fn test_compiler_pod_class() {
+fn test_compiler_pod_class_static_field() {
     let jack =
 "\
 class Foo {
-    static Bar bar;
-    static int baz;
-    field boolean bat;
-    field char bam;
+    static int bar;
+    field int baz;
 }
 ";
     let xml =
@@ -46,26 +45,14 @@ class Foo {
 <symbol>{</symbol>
 <classVarDec>
 <keyword>static</keyword>
-<identifier>Bar</identifier>
+<keyword>int</keyword>
 <identifier>bar</identifier>
 <symbol>;</symbol>
 </classVarDec>
 <classVarDec>
-<keyword>static</keyword>
+<keyword>field</keyword>
 <keyword>int</keyword>
 <identifier>baz</identifier>
-<symbol>;</symbol>
-</classVarDec>
-<classVarDec>
-<keyword>field</keyword>
-<keyword>boolean</keyword>
-<identifier>bat</identifier>
-<symbol>;</symbol>
-</classVarDec>
-<classVarDec>
-<keyword>field</keyword>
-<keyword>char</keyword>
-<identifier>bam</identifier>
 <symbol>;</symbol>
 </classVarDec>
 <symbol>}</symbol>
@@ -81,6 +68,89 @@ class Foo {
 
     assert_eq!(out, xml);
 }
+
+
+#[test]
+fn test_compiler_pod_class_primitive_types() {
+    let jack =
+"\
+class Foo {
+    field int bar;
+    field boolean baz;
+    field char bat;
+}
+";
+    let xml =
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<classVarDec>
+<keyword>field</keyword>
+<keyword>int</keyword>
+<identifier>bar</identifier>
+<symbol>;</symbol>
+</classVarDec>
+<classVarDec>
+<keyword>field</keyword>
+<keyword>boolean</keyword>
+<identifier>baz</identifier>
+<symbol>;</symbol>
+</classVarDec>
+<classVarDec>
+<keyword>field</keyword>
+<keyword>char</keyword>
+<identifier>bat</identifier>
+<symbol>;</symbol>
+</classVarDec>
+<symbol>}</symbol>
+</class>
+";
+    let t = JackTokenizer::new(&jack);
+    let mut w = Vec::new();
+    let mut e = CompilationEngine::new(t, &mut w);
+
+    e.compile();
+    let out = std::str::from_utf8(&w).unwrap();
+
+    assert_eq!(out, xml);
+}
+
+
+#[test]
+fn test_compiler_pod_class_non_primitive_types() {
+    let jack =
+"\
+class Foo {
+    field Bar bar;
+}
+";
+    let xml =
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<classVarDec>
+<keyword>field</keyword>
+<identifier>Bar</identifier>
+<identifier>bar</identifier>
+<symbol>;</symbol>
+</classVarDec>
+<symbol>}</symbol>
+</class>
+";
+    let t = JackTokenizer::new(&jack);
+    let mut w = Vec::new();
+    let mut e = CompilationEngine::new(t, &mut w);
+
+    e.compile();
+    let out = std::str::from_utf8(&w).unwrap();
+
+    assert_eq!(out, xml);
+}
+
 
 #[test]
 fn test_compiler_pod_class_multiple_variable_declaration() {
