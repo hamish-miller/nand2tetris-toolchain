@@ -4,10 +4,30 @@ use compiler::tokenizer::JackTokenizer;
 use compiler::engine::CompilationEngine;
 
 
-#[test]
-fn test_compiler_empty_class() {
-    let jack = "class Foo {}";
-    let xml =
+macro_rules! jack_to_xml_test {
+    ($name:tt $jack:tt -> $xml:tt) => {
+        #[test]
+        fn $name() {
+            let jack = $jack;
+            let xml = $xml;
+
+            let t = JackTokenizer::new(&jack);
+            let mut w = Vec::new();
+            let mut e = CompilationEngine::new(t, &mut w);
+
+            e.compile();
+            let out = std::str::from_utf8(&w).unwrap();
+
+            assert_eq!(out, xml);
+        }
+    }
+}
+
+
+jack_to_xml_test!(
+test_compiler_empty_class
+"class Foo {}"
+->
 "\
 <class>
 <keyword>class</keyword>
@@ -15,29 +35,19 @@ fn test_compiler_empty_class() {
 <symbol>{</symbol>
 <symbol>}</symbol>
 </class>
-";
-
-    let t = JackTokenizer::new(&jack);
-    let mut w = Vec::new();
-    let mut e = CompilationEngine::new(t, &mut w);
-
-    e.compile();
-    let out = std::str::from_utf8(&w).unwrap();
-
-    assert_eq!(out, xml);
-}
+"
+);
 
 
-#[test]
-fn test_compiler_pod_class_static_field() {
-    let jack =
+jack_to_xml_test!(
+test_compiler_pod_class_static_field
 "\
 class Foo {
     static int bar;
     field int baz;
 }
-";
-    let xml =
+"
+->
 "\
 <class>
 <keyword>class</keyword>
@@ -57,30 +67,20 @@ class Foo {
 </classVarDec>
 <symbol>}</symbol>
 </class>
-";
-
-    let t = JackTokenizer::new(&jack);
-    let mut w = Vec::new();
-    let mut e = CompilationEngine::new(t, &mut w);
-
-    e.compile();
-    let out = std::str::from_utf8(&w).unwrap();
-
-    assert_eq!(out, xml);
-}
+"
+);
 
 
-#[test]
-fn test_compiler_pod_class_primitive_types() {
-    let jack =
+jack_to_xml_test!(
+test_compiler_pod_class_primitive_types
 "\
 class Foo {
     field int bar;
     field boolean baz;
     field char bat;
 }
-";
-    let xml =
+"
+->
 "\
 <class>
 <keyword>class</keyword>
@@ -106,27 +106,18 @@ class Foo {
 </classVarDec>
 <symbol>}</symbol>
 </class>
-";
-    let t = JackTokenizer::new(&jack);
-    let mut w = Vec::new();
-    let mut e = CompilationEngine::new(t, &mut w);
-
-    e.compile();
-    let out = std::str::from_utf8(&w).unwrap();
-
-    assert_eq!(out, xml);
-}
+"
+);
 
 
-#[test]
-fn test_compiler_pod_class_non_primitive_types() {
-    let jack =
+jack_to_xml_test!(
+test_compiler_pod_class_non_primitive_types
 "\
 class Foo {
     field Bar bar;
 }
-";
-    let xml =
+"
+->
 "\
 <class>
 <keyword>class</keyword>
@@ -140,27 +131,18 @@ class Foo {
 </classVarDec>
 <symbol>}</symbol>
 </class>
-";
-    let t = JackTokenizer::new(&jack);
-    let mut w = Vec::new();
-    let mut e = CompilationEngine::new(t, &mut w);
-
-    e.compile();
-    let out = std::str::from_utf8(&w).unwrap();
-
-    assert_eq!(out, xml);
-}
+"
+);
 
 
-#[test]
-fn test_compiler_pod_class_multiple_variable_declaration() {
-    let jack =
+jack_to_xml_test!(
+test_compiler_pod_class_multiple_variable_declaration
 "\
 class Foo {
     field int bar, baz, bat;
 }
-";
-    let xml =
+"
+->
 "\
 <class>
 <keyword>class</keyword>
@@ -178,30 +160,20 @@ class Foo {
 </classVarDec>
 <symbol>}</symbol>
 </class>
-";
-
-    let t = JackTokenizer::new(&jack);
-    let mut w = Vec::new();
-    let mut e = CompilationEngine::new(t, &mut w);
-
-    e.compile();
-    let out = std::str::from_utf8(&w).unwrap();
-
-    assert_eq!(out, xml);
-}
+"
+);
 
 
-#[test]
-fn test_compiler_nop_class_subroutine_variants() {
-    let jack =
+jack_to_xml_test!(
+test_compiler_nop_class_subroutine_variants
 "\
 class Foo {
     constructor Foo new() {}
     function void bar() {}
     method void baz() {}
 }
-";
-    let xml =
+"
+->
 "\
 <class>
 <keyword>class</keyword>
@@ -236,28 +208,18 @@ class Foo {
 </subroutineDec>
 <symbol>}</symbol>
 </class>
-";
-
-    let t = JackTokenizer::new(&jack);
-    let mut w = Vec::new();
-    let mut e = CompilationEngine::new(t, &mut w);
-
-    e.compile();
-    let out = std::str::from_utf8(&w).unwrap();
-
-    assert_eq!(out, xml);
-}
+"
+);
 
 
-#[test]
-fn test_compiler_nop_class_subroutine_parameter_list_single() {
-    let jack =
+jack_to_xml_test!(
+test_compiler_nop_class_subroutine_parameter_list_single
 "\
 class Foo {
     function void bar(int baz) {}
 }
-";
-    let xml =
+"
+->
 "\
 <class>
 <keyword>class</keyword>
@@ -276,27 +238,18 @@ class Foo {
 </subroutineDec>
 <symbol>}</symbol>
 </class>
-";
+"
+);
 
-    let t = JackTokenizer::new(&jack);
-    let mut w = Vec::new();
-    let mut e = CompilationEngine::new(t, &mut w);
 
-    e.compile();
-    let out = std::str::from_utf8(&w).unwrap();
-
-    assert_eq!(out, xml);
-}
-
-#[test]
-fn test_compiler_nop_class_subroutine_parameter_list_multiple() {
-    let jack =
+jack_to_xml_test!(
+test_compiler_nop_class_subroutine_parameter_list_multiple
 "\
 class Foo {
     function void bar(char baz, void bat, Bam bam) {}
 }
-";
-    let xml =
+"
+->
 "\
 <class>
 <keyword>class</keyword>
@@ -321,14 +274,5 @@ class Foo {
 </subroutineDec>
 <symbol>}</symbol>
 </class>
-";
-
-    let t = JackTokenizer::new(&jack);
-    let mut w = Vec::new();
-    let mut e = CompilationEngine::new(t, &mut w);
-
-    e.compile();
-    let out = std::str::from_utf8(&w).unwrap();
-
-    assert_eq!(out, xml);
-}
+"
+);
