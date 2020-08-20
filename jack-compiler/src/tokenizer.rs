@@ -149,6 +149,27 @@ impl FromStr for Token {
 }
 
 impl Token {
+    pub fn keyword(&self) -> Option<&str> {
+        match self {
+            Token::Keyword(k) => Some(&k.0),
+            _ => None,
+        }
+    }
+
+    pub fn symbol(&self) -> Option<&char> {
+        match self {
+            Token::Symbol(i) => Some(&i.0),
+            _ => None,
+        }
+    }
+
+    pub fn identifier(&self) -> Option<&str> {
+        match self {
+            Token::Identifier(i) => Some(&i.0),
+            _ => None,
+        }
+    }
+
     fn len(&self) -> usize {
         use Token::*;
         match self {
@@ -160,6 +181,7 @@ impl Token {
         }
     }
 }
+
 
 #[derive(Debug, PartialEq)]
 pub struct Keyword(pub String);
