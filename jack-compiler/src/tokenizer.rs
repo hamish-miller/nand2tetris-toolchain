@@ -8,13 +8,21 @@ use std::str::FromStr;
 pub struct JackTokenizer {
     source: String,
     cursor: usize,
-    pub token: Option<Token>,
+    token: Option<Token>,
 }
 
 impl JackTokenizer {
     #![allow(non_snake_case)]  // Contract pre-specified
 
-    pub fn new(path: &Path) -> Self {
+    pub fn new(source: &str) -> Self {
+        JackTokenizer {
+            source: String::from(source),
+            cursor: 0,
+            token: None,
+        }
+    }
+
+    pub fn open(path: &Path) -> Self {
         JackTokenizer {
             source: fs::read_to_string(path).unwrap(),
             cursor: 0,
@@ -52,6 +60,10 @@ impl JackTokenizer {
     }
 }
 
+// Amazingly this works
+pub trait TokenStream: Iterator<Item=Token> {}
+impl<T: Iterator<Item=Token>> TokenStream for T {}
+
 impl Iterator for JackTokenizer {
     type Item = Token;
 
@@ -68,6 +80,7 @@ impl Iterator for JackTokenizer {
     }
 }
 
+#[derive(Debug)]
 pub struct ParseError;
 
 struct Whitespace { length: usize }
@@ -88,9 +101,9 @@ impl FromStr for Comment {
     type Err = ParseError;
 
     fn from_str(code: &str) -> Result<Self, Self::Err> {
-        let l = match &code[0..2] {
-            "//" => code.find('\n').unwrap_or_else(|| code.len()),
-            "/*" => code.find("*/").expect("'*/' not found.") + 2,
+        let l = match code.get(0..2) {
+            Some("//") => code.find('\n').unwrap_or_else(|| code.len()),
+            Some("/*") => code.find("*/").expect("'*/' not found.") + 2,
             _ => return Err(Self::Err {}),
         };
 
@@ -98,7 +111,7 @@ impl FromStr for Comment {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Keyword(Keyword),
     Symbol(Symbol),
@@ -148,8 +161,8 @@ impl Token {
     }
 }
 
-#[derive(Debug)]
-struct Keyword(String);
+#[derive(Debug, PartialEq)]
+pub struct Keyword(pub String);
 const KEYWORDS: [&'static str; 21] = [
     "class", "constructor", "function",
     "method", "field", "static", "var",
@@ -174,8 +187,8 @@ impl FromStr for Keyword {
 }
 
 
-#[derive(Debug)]
-struct Symbol(char);
+#[derive(Debug, PartialEq)]
+pub struct Symbol(pub char);
 const SYMBOLS: [char; 19] = [
     '{', '}', '(', ')', '[', ']', '.',
     ',', ';', '+', '-', '*', '/', '&',
@@ -197,8 +210,8 @@ impl FromStr for Symbol {
     }
 }
 
-#[derive(Debug)]
-struct Identifier(String);
+#[derive(Debug, PartialEq)]
+pub struct Identifier(pub String);
 
 impl FromStr for Identifier {
     type Err = ParseError;
@@ -218,8 +231,8 @@ impl FromStr for Identifier {
 }
 
 
-#[derive(Debug)]
-struct IntConst(u16);
+#[derive(Debug, PartialEq)]
+pub struct IntConst(pub u16);
 
 impl FromStr for IntConst {
     type Err = ParseError;
@@ -238,8 +251,8 @@ impl FromStr for IntConst {
 }
 
 
-#[derive(Debug)]
-struct StringConst(String);
+#[derive(Debug, PartialEq)]
+pub struct StringConst(pub String);
 
 impl FromStr for StringConst {
     type Err = ParseError;
