@@ -247,3 +247,88 @@ class Foo {
 
     assert_eq!(out, xml);
 }
+
+
+#[test]
+fn test_compiler_nop_class_subroutine_parameter_list_single() {
+    let jack =
+"\
+class Foo {
+    function void bar(int baz) {}
+}
+";
+    let xml =
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<keyword>int</keyword>
+<identifier>baz</identifier>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+";
+
+    let t = JackTokenizer::new(&jack);
+    let mut w = Vec::new();
+    let mut e = CompilationEngine::new(t, &mut w);
+
+    e.compile();
+    let out = std::str::from_utf8(&w).unwrap();
+
+    assert_eq!(out, xml);
+}
+
+#[test]
+fn test_compiler_nop_class_subroutine_parameter_list_multiple() {
+    let jack =
+"\
+class Foo {
+    function void bar(char baz, void bat, Bam bam) {}
+}
+";
+    let xml =
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<keyword>char</keyword>
+<identifier>baz</identifier>
+<symbol>,</symbol>
+<keyword>void</keyword>
+<identifier>bat</identifier>
+<symbol>,</symbol>
+<identifier>Bam</identifier>
+<identifier>bam</identifier>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+";
+
+    let t = JackTokenizer::new(&jack);
+    let mut w = Vec::new();
+    let mut e = CompilationEngine::new(t, &mut w);
+
+    e.compile();
+    let out = std::str::from_utf8(&w).unwrap();
+
+    assert_eq!(out, xml);
+}

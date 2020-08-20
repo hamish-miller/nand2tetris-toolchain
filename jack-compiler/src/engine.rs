@@ -166,5 +166,13 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
 
     /// ((type varName) (',' type varName)*)?
     fn compileParameterList(&mut self) {
+        loop {
+            self.writeType();
+            if self.cache.is_some() { break }
+            self.writeIdentifier();
+            if self.cache.is_some() { break }
+            self.writeSymbol(',');
+            if self.cache.is_some() { break }
+        }
     }
 }
