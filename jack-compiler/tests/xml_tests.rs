@@ -276,3 +276,75 @@ class Foo {
 </class>
 "
 );
+
+
+jack_to_xml_test!(
+test_compiler_nop_class_subroutine_variable_declaration_single
+"\
+class Foo {
+    function void bar() {
+        var int baz;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<keyword>var</keyword>
+<keyword>int</keyword>
+<identifier>baz</identifier>
+<symbol>;</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
+test_compiler_nop_class_subroutine_variable_declaration_multiple
+"\
+class Foo {
+    function void bar() {
+        var char baz, bam, bat;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<keyword>var</keyword>
+<keyword>char</keyword>
+<identifier>baz</identifier>
+<symbol>,</symbol>
+<identifier>bam</identifier>
+<symbol>,</symbol>
+<identifier>bat</identifier>
+<symbol>;</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);

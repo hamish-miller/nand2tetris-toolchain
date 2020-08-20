@@ -156,8 +156,10 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
                 self.writeSymbol(')');
 
                 self.writeSymbol('{');
-                // subRoutineBody
+                self.compileVarDec();
+                self.compileStatements();
                 self.writeSymbol('}');
+
                 self.closeNonTerminal("subroutineDec");
             },
             _ => self.cache(t),
@@ -174,5 +176,34 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             self.writeSymbol(',');
             if self.cache.is_some() { break }
         }
+    }
+
+    /// 'var' type varName (',' varName)* ';'
+    fn compileVarDec(&mut self) {
+        let t = self.token();
+        match t.keyword() {
+            Some("var") => {
+                self.writeKeyword("var");
+                self.writeType();
+                if self.cache.is_some() { return }
+                self.writeIdentifier();
+                if self.cache.is_some() { return }
+
+                loop {
+                    self.writeSymbol(',');
+                    if self.cache.is_some() { break }
+                    self.writeIdentifier();
+                    if self.cache.is_some() { break }
+                }
+
+                self.writeSymbol(';');
+                if self.cache.is_some() { return }
+            },
+            _ => self.cache(t),
+        }
+    }
+
+    /// statement*
+    fn compileStatements(&mut self) {
     }
 }
