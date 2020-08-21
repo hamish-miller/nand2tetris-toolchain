@@ -170,6 +170,20 @@ impl Token {
         }
     }
 
+    pub fn integer_constant(&self) -> Option<&str> {
+        match self {
+            Token::IntConst(i) => Some(&i.0),
+            _ => None,
+        }
+    }
+
+    pub fn string_constant(&self) -> Option<&str> {
+        match self {
+            Token::StringConst(i) => Some(&i.0),
+            _ => None,
+        }
+    }
+
     fn len(&self) -> usize {
         use Token::*;
         match self {
@@ -197,14 +211,15 @@ impl FromStr for Keyword {
     type Err = ParseError;
 
     fn from_str(code: &str) -> Result<Self, Self::Err> {
-        let word = code.split_whitespace().next().unwrap();
+        if let Some(i) = code.find(|c: char| !c.is_ascii_alphabetic()) {
+            let word = &code[..i];
 
-        if KEYWORDS.contains(&word) {
-            Ok(Keyword(word.to_string()))
-        } else {
-            Err(Self::Err {})
+            if KEYWORDS.contains(&word) {
+                return Ok(Keyword(word.to_string()))
+            }
         }
 
+        Err(Self::Err {})
     }
 }
 
@@ -254,7 +269,7 @@ impl FromStr for Identifier {
 
 
 #[derive(Debug, PartialEq)]
-pub struct IntConst(pub u16);
+pub struct IntConst(pub String);
 
 impl FromStr for IntConst {
     type Err = ParseError;
@@ -265,7 +280,7 @@ impl FromStr for IntConst {
 
         if c.is_ascii_digit() {
             let until = code.find(non_digit).unwrap();
-            Ok(IntConst(code[..until].parse::<u16>().unwrap()))
+            Ok(IntConst(code[..until].to_string()))
         } else {
             Err(Self::Err {})
         }

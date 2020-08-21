@@ -69,7 +69,38 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             Some(i) => {
                 writeln!(self.writer, "<identifier>{}</identifier>", i);
             },
-            _ => {},
+            _ => unreachable!(),
+        }
+    }
+
+    fn writeIntegerConstant(&mut self) {
+        let t = self.token();
+        match t.integer_constant() {
+            Some(i) => {
+                writeln!(self.writer, "<integerConstant>{}</integerConstant>", i);
+            },
+            _ => self.cache(t),
+        }
+    }
+
+    fn writeStringConstant(&mut self) {
+        let t = self.token();
+        match t.string_constant() {
+            Some(s) => {
+                writeln!(self.writer, "<stringConstant>{}</stringConstant>", s);
+            },
+            _ => self.cache(t),
+        }
+    }
+
+    fn writeKeywordConstant(&mut self) {
+        const KEYWORDS: [&str; 4] = ["true", "false", "null", "this"];
+        let t = self.token();
+        match t.keyword() {
+            Some(kc) if KEYWORDS.contains(&kc) => {
+                self.writeKeyword(&kc);
+            },
+            _ => self.cache(t),
         }
     }
 
@@ -156,7 +187,10 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
                 self.writeSymbol(')');
 
                 self.writeSymbol('{');
-                self.compileVarDec();
+                loop {
+                    self.compileVarDec();
+                    if self.cache.is_some() { break }
+                }
                 self.compileStatements();
                 self.writeSymbol('}');
 
@@ -203,7 +237,40 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         }
     }
 
-    /// statement*
+    /// statements: statement*
+    /// statement: (letStatement | ifStatement | whileStatement | doStatement | returnStatement)
     fn compileStatements(&mut self) {
+        loop {
+            let t = self.token();
+            match t.keyword() {
+                Some("let") => self.compileLet(),
+                _ => { self.cache(t); break },
+            }
+        }
+    }
+
+    /// 'let' varName ('[' expression ']')? '=' expression ';'
+    fn compileLet(&mut self) {
+        self.writeKeyword("let");
+        self.writeIdentifier();
+
+        // TODO: Array indexing
+
+        self.writeSymbol('=');
+        self.compileExpression();
+        self.writeSymbol(';');
+    }
+
+    /// term (op term)*
+    fn compileExpression(&mut self) {
+        self.openNonTerminal("expression");
+
+        self.writeIntegerConstant();
+        self.writeStringConstant();
+        self.writeKeywordConstant();
+
+        // TODO: (op term)*
+
+        self.closeNonTerminal("expression");
     }
 }

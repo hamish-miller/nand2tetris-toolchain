@@ -18,7 +18,9 @@ macro_rules! jack_to_xml_test {
             e.compile();
             let out = std::str::from_utf8(&w).unwrap();
 
-            assert_eq!(out, xml);
+            for (o, e) in out.lines().zip(xml.lines()) {
+                assert_eq!(o, e);
+            }
         }
     }
 }
@@ -313,6 +315,50 @@ class Foo {
 
 
 jack_to_xml_test!(
+test_compiler_nop_class_subroutine_variable_declaration_primitive_types
+"\
+class Foo {
+    function void bar() {
+        var int baz;
+        var char bat;
+        var boolean bam;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<keyword>var</keyword>
+<keyword>int</keyword>
+<identifier>baz</identifier>
+<symbol>;</symbol>
+<keyword>var</keyword>
+<keyword>char</keyword>
+<identifier>bat</identifier>
+<symbol>;</symbol>
+<keyword>var</keyword>
+<keyword>boolean</keyword>
+<identifier>bam</identifier>
+<symbol>;</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
 test_compiler_nop_class_subroutine_variable_declaration_multiple
 "\
 class Foo {
@@ -341,6 +387,209 @@ class Foo {
 <identifier>bam</identifier>
 <symbol>,</symbol>
 <identifier>bat</identifier>
+<symbol>;</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
+test_compiler_class_subroutine_statements_let_int_constant
+"\
+class Foo {
+    function void bar() {
+        var int baz;
+        let baz = 42;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<keyword>var</keyword>
+<keyword>int</keyword>
+<identifier>baz</identifier>
+<symbol>;</symbol>
+<keyword>let</keyword>
+<identifier>baz</identifier>
+<symbol>=</symbol>
+<expression>
+<integerConstant>42</integerConstant>
+</expression>
+<symbol>;</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
+test_compiler_class_subroutine_statements_let_string_constant
+"\
+class Foo {
+    function void bar() {
+        var String baz;
+        let baz = \"FooBarBaz\";
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<keyword>var</keyword>
+<identifier>String</identifier>
+<identifier>baz</identifier>
+<symbol>;</symbol>
+<keyword>let</keyword>
+<identifier>baz</identifier>
+<symbol>=</symbol>
+<expression>
+<stringConstant>FooBarBaz</stringConstant>
+</expression>
+<symbol>;</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
+test_compiler_class_subroutine_statements_let_keyword_constant
+"\
+class Foo {
+    function void bar() {
+        var boolean t, f;
+
+        let t = true;
+        let f = false;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<keyword>var</keyword>
+<keyword>boolean</keyword>
+<identifier>t</identifier>
+<symbol>,</symbol>
+<identifier>f</identifier>
+<symbol>;</symbol>
+<keyword>let</keyword>
+<identifier>t</identifier>
+<symbol>=</symbol>
+<expression>
+<keyword>true</keyword>
+</expression>
+<symbol>;</symbol>
+<keyword>let</keyword>
+<identifier>f</identifier>
+<symbol>=</symbol>
+<expression>
+<keyword>false</keyword>
+</expression>
+<symbol>;</symbol>
+<symbol>}</symbol>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
+test_compiler_class_subroutine_statements_let_multiple
+"\
+class Foo {
+    function void bar() {
+        var int x, y;
+        var String s;
+
+        let x = 0;
+        let s = \"thirty two\";
+        let y = 64;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<keyword>var</keyword>
+<keyword>int</keyword>
+<identifier>x</identifier>
+<symbol>,</symbol>
+<identifier>y</identifier>
+<symbol>;</symbol>
+<keyword>var</keyword>
+<identifier>String</identifier>
+<identifier>s</identifier>
+<symbol>;</symbol>
+<keyword>let</keyword>
+<identifier>x</identifier>
+<symbol>=</symbol>
+<expression>
+<integerConstant>0</integerConstant>
+</expression>
+<symbol>;</symbol>
+<keyword>let</keyword>
+<identifier>s</identifier>
+<symbol>=</symbol>
+<expression>
+<stringConstant>thirty two</stringConstant>
+</expression>
+<symbol>;</symbol>
+<keyword>let</keyword>
+<identifier>y</identifier>
+<symbol>=</symbol>
+<expression>
+<integerConstant>64</integerConstant>
+</expression>
 <symbol>;</symbol>
 <symbol>}</symbol>
 </subroutineDec>
