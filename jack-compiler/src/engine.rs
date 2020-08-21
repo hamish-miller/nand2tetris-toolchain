@@ -71,9 +71,10 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
     }
 
     fn writeIdentifier(&mut self) {
-        match self.token().identifier() {
+        let t = self.token();
+        match t.identifier() {
             Some(i) => self.writeTerminal("identifier", i),
-            _ => unreachable!(),
+            _ => self.cache(t),
         }
     }
 
@@ -177,23 +178,26 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         match t.keyword() {
             Some(s) if KEYWORDS.contains(&s) => {
                 self.openNonTerminal("subroutineDec");
-                self.writeKeyword(s);
+                {
+                    self.writeKeyword(s);
+                    self.writeType();
+                    self.writeIdentifier();
+                    self.writeSymbol('(');
+                    self.compileParameterList();
+                    self.writeSymbol(')');
 
-                self.writeType();
-                self.writeIdentifier();
-
-                self.writeSymbol('(');
-                self.compileParameterList();
-                self.writeSymbol(')');
-
-                self.writeSymbol('{');
-                loop {
-                    self.compileVarDec();
-                    if self.cache.is_some() { break }
+                    self.openNonTerminal("subroutineBody");
+                    {
+                        self.writeSymbol('{');
+                        loop {
+                            self.compileVarDec();
+                            if self.cache.is_some() { break }
+                        }
+                        self.compileStatements();
+                        self.writeSymbol('}');
+                    }
+                    self.closeNonTerminal("subroutineBody");
                 }
-                self.compileStatements();
-                self.writeSymbol('}');
-
                 self.closeNonTerminal("subroutineDec");
             },
             _ => self.cache(t),
@@ -202,14 +206,29 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
 
     /// ((type varName) (',' type varName)*)?
     fn compileParameterList(&mut self) {
-        loop {
+        // Early return for empty parameter list
+        let t = self.token();
+        let empty = Some(&')') == t.symbol();
+        self.cache(t);
+        if empty { return }
+
+        self.openNonTerminal("parameterList");
+        {
             self.writeType();
-            if self.cache.is_some() { break }
+            if self.cache.is_some() { return }
             self.writeIdentifier();
-            if self.cache.is_some() { break }
-            self.writeSymbol(',');
-            if self.cache.is_some() { break }
+            if self.cache.is_some() { return }
+
+            loop {
+                self.writeSymbol(',');
+                if self.cache.is_some() { break }
+                self.writeType();
+                if self.cache.is_some() { break }
+                self.writeIdentifier();
+                if self.cache.is_some() { break }
+            }
         }
+        self.closeNonTerminal("parameterList");
     }
 
     /// 'var' type varName (',' varName)* ';'
@@ -217,21 +236,25 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         let t = self.token();
         match t.keyword() {
             Some("var") => {
-                self.writeKeyword("var");
-                self.writeType();
-                if self.cache.is_some() { return }
-                self.writeIdentifier();
-                if self.cache.is_some() { return }
-
-                loop {
-                    self.writeSymbol(',');
-                    if self.cache.is_some() { break }
+                self.openNonTerminal("varDec");
+                {
+                    self.writeKeyword("var");
+                    self.writeType();
+                    if self.cache.is_some() { return }
                     self.writeIdentifier();
-                    if self.cache.is_some() { break }
-                }
+                    if self.cache.is_some() { return }
 
-                self.writeSymbol(';');
-                if self.cache.is_some() { return }
+                    loop {
+                        self.writeSymbol(',');
+                        if self.cache.is_some() { break }
+                        self.writeIdentifier();
+                        if self.cache.is_some() { break }
+                    }
+
+                    self.writeSymbol(';');
+                    if self.cache.is_some() { return }
+                }
+                self.closeNonTerminal("varDec");
             },
             _ => self.cache(t),
         }
@@ -240,6 +263,7 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
     /// statements: statement*
     /// statement: (letStatement | ifStatement | whileStatement | doStatement | returnStatement)
     fn compileStatements(&mut self) {
+        self.openNonTerminal("statements");
         loop {
             let t = self.token();
             match t.keyword() {
@@ -247,30 +271,35 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
                 _ => { self.cache(t); break },
             }
         }
+        self.closeNonTerminal("statements");
     }
 
     /// 'let' varName ('[' expression ']')? '=' expression ';'
     fn compileLet(&mut self) {
-        self.writeKeyword("let");
-        self.writeIdentifier();
+        self.openNonTerminal("letStatement");
+        {
+            self.writeKeyword("let");
+            self.writeIdentifier();
 
-        // TODO: Array indexing
+            // TODO: Array indexing
 
-        self.writeSymbol('=');
-        self.compileExpression();
-        self.writeSymbol(';');
+            self.writeSymbol('=');
+            self.compileExpression();
+            self.writeSymbol(';');
+        }
+        self.closeNonTerminal("letStatement");
     }
 
     /// term (op term)*
     fn compileExpression(&mut self) {
         self.openNonTerminal("expression");
+        {
+            self.writeIntegerConstant();
+            self.writeStringConstant();
+            self.writeKeywordConstant();
 
-        self.writeIntegerConstant();
-        self.writeStringConstant();
-        self.writeKeywordConstant();
-
-        // TODO: (op term)*
-
+            // TODO: (op term)*
+        }
         self.closeNonTerminal("expression");
     }
 }
