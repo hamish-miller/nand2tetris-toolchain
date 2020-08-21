@@ -50,15 +50,21 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         writeln!(self.writer, "</{}>", nt);
     }
 
+    // keyword, symbol, identifier, integerConstant, stringConstant
+    fn writeTerminal(&mut self, tag: &str, value: &str) {
+        writeln!(self.writer, "<{}>{}</{}>", tag, value, tag);
+    }
+
     fn writeKeyword(&mut self, k: &str) {
-        writeln!(self.writer, "<keyword>{}</keyword>", k);
+        self.writeTerminal("keyword", k);
     }
 
     fn writeSymbol(&mut self, s: char) {
         let t = self.token();
         match t.symbol() {
             Some(c) if *c == s => {
-                writeln!(self.writer, "<symbol>{}</symbol>", s);
+                let s = s.to_string();
+                self.writeTerminal("symbol", &s);
             },
             _ => self.cache(t),
         }
@@ -66,9 +72,7 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
 
     fn writeIdentifier(&mut self) {
         match self.token().identifier() {
-            Some(i) => {
-                writeln!(self.writer, "<identifier>{}</identifier>", i);
-            },
+            Some(i) => self.writeTerminal("identifier", i),
             _ => unreachable!(),
         }
     }
@@ -76,9 +80,7 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
     fn writeIntegerConstant(&mut self) {
         let t = self.token();
         match t.integer_constant() {
-            Some(i) => {
-                writeln!(self.writer, "<integerConstant>{}</integerConstant>", i);
-            },
+            Some(i) => self.writeTerminal("integerConstant", i),
             _ => self.cache(t),
         }
     }
@@ -86,9 +88,7 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
     fn writeStringConstant(&mut self) {
         let t = self.token();
         match t.string_constant() {
-            Some(s) => {
-                writeln!(self.writer, "<stringConstant>{}</stringConstant>", s);
-            },
+            Some(s) => self.writeTerminal("stringConstant", s),
             _ => self.cache(t),
         }
     }
