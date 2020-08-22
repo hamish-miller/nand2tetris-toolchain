@@ -270,6 +270,7 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
                 Some("let") => self.compileLet(),
                 Some("if") => self.compileIf(),
                 Some("while") => self.compileWhile(),
+                Some("do") => self.compileDo(),
                 Some("return") => self.compileReturn(),
                 _ => { self.cache(t); break },
             }
@@ -292,7 +293,6 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         }
         self.closeNonTerminal("letStatement");
     }
-
 
     /// 'if' '(' expression ')' '{' statements '}'
     /// ('else' '{' expression '}')?
@@ -320,7 +320,6 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         self.closeNonTerminal("ifStatement");
     }
 
-
     /// 'while' '(' expression ')' '{' statements '}'
     fn compileWhile(&mut self) {
         self.openNonTerminal("whileStatement");
@@ -336,6 +335,30 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         self.closeNonTerminal("whileStatement");
     }
 
+    /// 'do' subroutineCall ';'
+    fn compileDo(&mut self) {
+        self.openNonTerminal("doStatement");
+        {
+            self.writeKeyword("do");
+            self.writeIdentifier();
+
+            let t = self.token();
+            if Some(&'.') ==  t.symbol() {
+                self.cache(t);
+                self.writeSymbol('.');
+                self.writeIdentifier();
+            } else {
+                self.cache(t);
+            }
+
+            self.writeSymbol('(');
+            self.openNonTerminal("expressionList");
+            self.closeNonTerminal("expressionList");
+            self.writeSymbol(')');
+            self.writeSymbol(';');
+        }
+        self.closeNonTerminal("doStatement");
+    }
 
     /// 'return' expression? ';'
     fn compileReturn(&mut self) {
