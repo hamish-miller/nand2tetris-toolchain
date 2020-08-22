@@ -268,8 +268,9 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             let t = self.token();
             match t.keyword() {
                 Some("let") => self.compileLet(),
-                Some("return") => self.compileReturn(),
                 Some("if") => self.compileIf(),
+                Some("while") => self.compileWhile(),
+                Some("return") => self.compileReturn(),
                 _ => { self.cache(t); break },
             }
         }
@@ -317,6 +318,22 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             }
         }
         self.closeNonTerminal("ifStatement");
+    }
+
+
+    /// 'while' '(' expression ')' '{' statements '}'
+    fn compileWhile(&mut self) {
+        self.openNonTerminal("whileStatement");
+        {
+            self.writeKeyword("while");
+            self.writeSymbol('(');
+            self.compileExpression();
+            self.writeSymbol(')');
+            self.writeSymbol('{');
+            self.compileStatements();
+            self.writeSymbol('}');
+        }
+        self.closeNonTerminal("whileStatement");
     }
 
 

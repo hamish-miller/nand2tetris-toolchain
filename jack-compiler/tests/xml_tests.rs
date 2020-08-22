@@ -830,6 +830,52 @@ class Foo {
 
 
 jack_to_xml_test!(
+test_compiler_class_subroutine_statements_while_infinite
+"\
+class Foo {
+    function void bar() {
+        while (true) {}
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<statements>
+<whileStatement>
+<keyword>while</keyword>
+<symbol>(</symbol>
+<expression>
+<keyword>true</keyword>
+</expression>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<statements>
+</statements>
+<symbol>}</symbol>
+</whileStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
 test_compiler_class_subroutine_statements_return
 "\
 class Foo {
