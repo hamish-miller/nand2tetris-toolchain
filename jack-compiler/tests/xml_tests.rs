@@ -1040,3 +1040,57 @@ class Foo {
 </class>
 "
 );
+
+
+jack_to_xml_test!(
+test_compiler_class_subroutine_expression_list
+"\
+class Foo {
+    function void bar() {
+        do baz(16, 32, 64);
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<statements>
+<doStatement>
+<keyword>do</keyword>
+<identifier>baz</identifier>
+<symbol>(</symbol>
+<expressionList>
+<expression>
+<integerConstant>16</integerConstant>
+</expression>
+<symbol>,</symbol>
+<expression>
+<integerConstant>32</integerConstant>
+</expression>
+<symbol>,</symbol>
+<expression>
+<integerConstant>64</integerConstant>
+</expression>
+</expressionList>
+<symbol>)</symbol>
+<symbol>;</symbol>
+</doStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);

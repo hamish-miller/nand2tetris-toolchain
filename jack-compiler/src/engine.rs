@@ -352,8 +352,7 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             }
 
             self.writeSymbol('(');
-            self.openNonTerminal("expressionList");
-            self.closeNonTerminal("expressionList");
+            self.compileExpressionList();
             self.writeSymbol(')');
             self.writeSymbol(';');
         }
@@ -386,5 +385,29 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             // TODO: (op term)*
         }
         self.closeNonTerminal("expression");
+    }
+
+    /// (expression (',' expression)*)?
+    fn compileExpressionList(&mut self) {
+        self.openNonTerminal("expressionList");
+        {
+            let t = self.token();
+            if Some(&')') == t.symbol() {
+                self.cache(t);
+                self.closeNonTerminal("expressionList");
+                return
+            } else {
+                self.cache(t);
+            }
+
+            self.compileExpression();
+
+            loop {
+                self.writeSymbol(',');
+                if self.cache.is_some() { break }
+                self.compileExpression();
+            }
+        }
+        self.closeNonTerminal("expressionList");
     }
 }
