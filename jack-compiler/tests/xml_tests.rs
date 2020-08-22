@@ -718,6 +718,118 @@ class Foo {
 
 
 jack_to_xml_test!(
+test_compiler_class_subroutine_statements_if_literals
+"\
+class Foo {
+    function void bar() {
+        if (true) {}
+        if (false) {}
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<statements>
+<ifStatement>
+<keyword>if</keyword>
+<symbol>(</symbol>
+<expression>
+<keyword>true</keyword>
+</expression>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<statements>
+</statements>
+<symbol>}</symbol>
+</ifStatement>
+<ifStatement>
+<keyword>if</keyword>
+<symbol>(</symbol>
+<expression>
+<keyword>false</keyword>
+</expression>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<statements>
+</statements>
+<symbol>}</symbol>
+</ifStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
+test_compiler_class_subroutine_statements_if_else
+"\
+class Foo {
+    function void bar() {
+        if (true) {
+        } else {
+        }
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<statements>
+<ifStatement>
+<keyword>if</keyword>
+<symbol>(</symbol>
+<expression>
+<keyword>true</keyword>
+</expression>
+<symbol>)</symbol>
+<symbol>{</symbol>
+<statements>
+</statements>
+<symbol>}</symbol>
+<keyword>else</keyword>
+<symbol>{</symbol>
+<statements>
+</statements>
+<symbol>}</symbol>
+</ifStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
 test_compiler_class_subroutine_statements_return
 "\
 class Foo {

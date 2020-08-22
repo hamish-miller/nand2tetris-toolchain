@@ -269,6 +269,7 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             match t.keyword() {
                 Some("let") => self.compileLet(),
                 Some("return") => self.compileReturn(),
+                Some("if") => self.compileIf(),
                 _ => { self.cache(t); break },
             }
         }
@@ -289,6 +290,33 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             self.writeSymbol(';');
         }
         self.closeNonTerminal("letStatement");
+    }
+
+
+    /// 'if' '(' expression ')' '{' statements '}'
+    /// ('else' '{' expression '}')?
+    fn compileIf(&mut self) {
+        self.openNonTerminal("ifStatement");
+        {
+            self.writeKeyword("if");
+            self.writeSymbol('(');
+            self.compileExpression();
+            self.writeSymbol(')');
+            self.writeSymbol('{');
+            self.compileStatements();
+            self.writeSymbol('}');
+
+            let t = self.token();
+            if Some("else") == t.keyword() {
+                self.writeKeyword("else");
+                self.writeSymbol('{');
+                self.compileStatements();
+                self.writeSymbol('}');
+            } else {
+                self.cache(t);
+            }
+        }
+        self.closeNonTerminal("ifStatement");
     }
 
 
