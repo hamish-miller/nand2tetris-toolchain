@@ -268,6 +268,7 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             let t = self.token();
             match t.keyword() {
                 Some("let") => self.compileLet(),
+                Some("return") => self.compileReturn(),
                 _ => { self.cache(t); break },
             }
         }
@@ -288,6 +289,22 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             self.writeSymbol(';');
         }
         self.closeNonTerminal("letStatement");
+    }
+
+
+    /// 'return' expression? ';'
+    fn compileReturn(&mut self) {
+        self.openNonTerminal("returnStatement");
+        {
+            self.writeKeyword("return");
+            self.writeSymbol(';');
+
+            if self.cache.is_some() {
+                self.compileExpression();
+                self.writeSymbol(';');
+            }
+        }
+        self.closeNonTerminal("returnStatement");
     }
 
     /// term (op term)*
