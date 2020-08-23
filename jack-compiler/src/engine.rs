@@ -63,8 +63,17 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         let t = self.token();
         match t.symbol() {
             Some(c) if *c == s => {
-                let s = s.to_string();
-                self.writeTerminal("symbol", &s);
+                if let Some(s) = match s {
+                    '<' => Some("&lt;"),
+                    '>' => Some("&gt;"),
+                    '&' => Some("&amp;"),
+                    _ => None,
+                } {
+                    self.writeTerminal("symbol", s);
+                } else {
+                    let s = s.to_string();
+                    self.writeTerminal("symbol", &s);
+                }
             },
             _ => self.cache(t),
         }

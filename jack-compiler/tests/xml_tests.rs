@@ -1213,6 +1213,63 @@ class Foo {
 
 
 jack_to_xml_test!(
+test_compiler_class_subroutine_expression_op_xml_markup_clash
+"\
+class Foo {
+    function boolean bar() {
+        return 1 < 2 & 2 > 1;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>boolean</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<parameterList>
+</parameterList>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<statements>
+<returnStatement>
+<keyword>return</keyword>
+<expression>
+<term>
+<integerConstant>1</integerConstant>
+</term>
+<symbol>&lt;</symbol>
+<term>
+<integerConstant>2</integerConstant>
+</term>
+<symbol>&amp;</symbol>
+<term>
+<integerConstant>2</integerConstant>
+</term>
+<symbol>&gt;</symbol>
+<term>
+<integerConstant>1</integerConstant>
+</term>
+</expression>
+<symbol>;</symbol>
+</returnStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
 test_compiler_class_subroutine_expression_list
 "\
 class Foo {
