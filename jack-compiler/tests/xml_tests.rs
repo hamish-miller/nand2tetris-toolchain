@@ -666,6 +666,68 @@ class Foo {
 
 
 jack_to_xml_test!(
+test_compiler_class_subroutine_statements_let_array
+"\
+class Foo {
+    function void bar() {
+        var Array a;
+        // let a = Array.new(5);
+        let a[0] = 42;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>void</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<parameterList>
+</parameterList>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<varDec>
+<keyword>var</keyword>
+<identifier>Array</identifier>
+<identifier>a</identifier>
+<symbol>;</symbol>
+</varDec>
+<statements>
+<letStatement>
+<keyword>let</keyword>
+<identifier>a</identifier>
+<symbol>[</symbol>
+<expression>
+<term>
+<integerConstant>0</integerConstant>
+</term>
+</expression>
+<symbol>]</symbol>
+<symbol>=</symbol>
+<expression>
+<term>
+<integerConstant>42</integerConstant>
+</term>
+</expression>
+<symbol>;</symbol>
+</letStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
 test_compiler_class_subroutine_statements_let_multiple
 "\
 class Foo {
@@ -1510,6 +1572,65 @@ class Foo {
 <expression>
 <term>
 <identifier>x</identifier>
+</term>
+</expression>
+<symbol>;</symbol>
+</returnStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
+test_compiler_class_subroutine_term_variable_name_array
+"\
+class Foo {
+    function int bar() {
+        var Array a;
+        return a[0];
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>int</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<parameterList>
+</parameterList>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<varDec>
+<keyword>var</keyword>
+<identifier>Array</identifier>
+<identifier>a</identifier>
+<symbol>;</symbol>
+</varDec>
+<statements>
+<returnStatement>
+<keyword>return</keyword>
+<expression>
+<term>
+<identifier>a</identifier>
+<symbol>[</symbol>
+<expression>
+<term>
+<integerConstant>0</integerConstant>
+</term>
+</expression>
+<symbol>]</symbol>
 </term>
 </expression>
 <symbol>;</symbol>

@@ -315,10 +315,15 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         {
             self.writeKeyword("let");
             self.writeIdentifier();
-
-            // TODO: Array indexing
-
             self.writeSymbol('=');
+
+            if self.cache.is_some() {
+                self.writeSymbol('[');
+                self.compileExpression();
+                self.writeSymbol(']');
+                self.writeSymbol('=');
+            }
+
             self.compileExpression();
             self.writeSymbol(';');
         }
@@ -427,8 +432,16 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
 
             let t = self.token();
             match t.symbol() {
-                Some('[') => self.cache(t),  // TODO: Arrays
-                Some('(') | Some('.') => { self.cache(t); self.writeSubroutineCall(); },
+                Some('[') => {
+                    self.cache(t);
+                    self.writeSymbol('[');
+                    self.compileExpression();
+                    self.writeSymbol(']');
+                },
+                Some('(') | Some('.') => {
+                    self.cache(t);
+                    self.writeSubroutineCall();
+                },
                 _ => self.cache(t),
             }
         }
