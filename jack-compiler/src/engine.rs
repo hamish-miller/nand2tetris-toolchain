@@ -126,6 +126,25 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         }
     }
 
+    /// subroutineName '(' 'expressionList' ')' |
+    /// (className | varName) '.' subroutineName '(' expressionList ')'
+    fn writeSubroutineCall(&mut self) {
+        self.writeIdentifier();
+
+        let t = self.token();
+        if Some(&'.') ==  t.symbol() {
+            self.cache(t);
+            self.writeSymbol('.');
+            self.writeIdentifier();
+        } else {
+            self.cache(t);
+        }
+
+        self.writeSymbol('(');
+        self.compileExpressionList();
+        self.writeSymbol(')');
+    }
+
     /// 'class' className '{' classVarDec* subroutineDec* '}'
     fn compileClass(&mut self) {
         match self.token().keyword() {
@@ -352,20 +371,7 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         self.openNonTerminal("doStatement");
         {
             self.writeKeyword("do");
-            self.writeIdentifier();
-
-            let t = self.token();
-            if Some(&'.') ==  t.symbol() {
-                self.cache(t);
-                self.writeSymbol('.');
-                self.writeIdentifier();
-            } else {
-                self.cache(t);
-            }
-
-            self.writeSymbol('(');
-            self.compileExpressionList();
-            self.writeSymbol(')');
+            self.writeSubroutineCall();
             self.writeSymbol(';');
         }
         self.closeNonTerminal("doStatement");
@@ -416,9 +422,15 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             self.writeIntegerConstant();
             self.writeStringConstant();
             self.writeKeywordConstant();
+
             self.writeIdentifier();
-            // TODO: Array variable
-            // TODO: subroutineCall
+
+            let t = self.token();
+            match t.symbol() {
+                Some('[') => self.cache(t),  // TODO: Arrays
+                Some('(') | Some('.') => { self.cache(t); self.writeSubroutineCall(); },
+                _ => self.cache(t),
+            }
         }
         self.closeNonTerminal("term");
     }
