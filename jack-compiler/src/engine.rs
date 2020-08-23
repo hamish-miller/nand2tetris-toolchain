@@ -381,13 +381,25 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
     fn compileExpression(&mut self) {
         self.openNonTerminal("expression");
         {
-            self.writeIntegerConstant();
-            self.writeStringConstant();
-            self.writeKeywordConstant();
-
+            self.compileTerm();
             // TODO: (op term)*
         }
         self.closeNonTerminal("expression");
+    }
+
+    /// integerConstant | stringConstant | keywordConstant |
+    /// varName | varName '[' expression ']' | subroutineCall
+    fn compileTerm(&mut self) {
+        self.openNonTerminal("term");
+        {
+            self.writeIntegerConstant();
+            self.writeStringConstant();
+            self.writeKeywordConstant();
+            self.writeIdentifier();
+            // TODO: Array variable
+            // TODO: subroutineCall
+        }
+        self.closeNonTerminal("term");
     }
 
     /// (expression (',' expression)*)?
