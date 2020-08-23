@@ -186,6 +186,8 @@ class Foo {
 <identifier>Foo</identifier>
 <identifier>new</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -199,6 +201,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -212,6 +216,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>baz</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -244,6 +250,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -356,6 +364,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -398,6 +408,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -450,6 +462,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -495,6 +509,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -545,6 +561,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -597,6 +615,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -662,6 +682,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -738,6 +760,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -798,6 +822,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -849,6 +875,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -895,6 +923,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -938,6 +968,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -983,6 +1015,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -1021,6 +1055,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>
@@ -1062,6 +1098,8 @@ class Foo {
 <keyword>void</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
+<parameterList>
+</parameterList>
 <symbol>)</symbol>
 <subroutineBody>
 <symbol>{</symbol>

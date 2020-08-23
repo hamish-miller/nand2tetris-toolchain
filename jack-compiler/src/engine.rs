@@ -206,14 +206,17 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
 
     /// ((type varName) (',' type varName)*)?
     fn compileParameterList(&mut self) {
-        // Early return for empty parameter list
-        let t = self.token();
-        let empty = Some(&')') == t.symbol();
-        self.cache(t);
-        if empty { return }
-
         self.openNonTerminal("parameterList");
         {
+            let t = self.token();
+            if Some(&')') == t.symbol() {
+                self.cache(t);
+                self.closeNonTerminal("parameterList");
+                return
+            } else {
+                self.cache(t);
+            }
+
             self.writeType();
             if self.cache.is_some() { return }
             self.writeIdentifier();
