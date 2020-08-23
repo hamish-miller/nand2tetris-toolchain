@@ -1061,7 +1061,7 @@ jack_to_xml_test!(
 test_compiler_class_subroutine_statements_return_expression
 "\
 class Foo {
-    function void bar() {
+    function int bar() {
         return 42;
     }
 }
@@ -1074,7 +1074,7 @@ class Foo {
 <symbol>{</symbol>
 <subroutineDec>
 <keyword>function</keyword>
-<keyword>void</keyword>
+<keyword>int</keyword>
 <identifier>bar</identifier>
 <symbol>(</symbol>
 <parameterList>
@@ -1088,6 +1088,116 @@ class Foo {
 <expression>
 <term>
 <integerConstant>42</integerConstant>
+</term>
+</expression>
+<symbol>;</symbol>
+</returnStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
+test_compiler_class_subroutine_expression_single_op
+"\
+class Foo {
+    function int bar() {
+        return 9 + 10;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>int</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<parameterList>
+</parameterList>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<statements>
+<returnStatement>
+<keyword>return</keyword>
+<expression>
+<term>
+<integerConstant>9</integerConstant>
+</term>
+<symbol>+</symbol>
+<term>
+<integerConstant>10</integerConstant>
+</term>
+</expression>
+<symbol>;</symbol>
+</returnStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
+test_compiler_class_subroutine_expression_multiple_op
+"\
+class Foo {
+    function int bar() {
+        return 1 + 2 - 3 * 4 / 5;
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>int</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<parameterList>
+</parameterList>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<statements>
+<returnStatement>
+<keyword>return</keyword>
+<expression>
+<term>
+<integerConstant>1</integerConstant>
+</term>
+<symbol>+</symbol>
+<term>
+<integerConstant>2</integerConstant>
+</term>
+<symbol>-</symbol>
+<term>
+<integerConstant>3</integerConstant>
+</term>
+<symbol>*</symbol>
+<term>
+<integerConstant>4</integerConstant>
+</term>
+<symbol>/</symbol>
+<term>
+<integerConstant>5</integerConstant>
 </term>
 </expression>
 <symbol>;</symbol>

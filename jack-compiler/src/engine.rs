@@ -379,10 +379,22 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
 
     /// term (op term)*
     fn compileExpression(&mut self) {
+        const OPS: [char; 9] = ['+', '-', '*', '/', '&', '|', '<', '>', '='];
         self.openNonTerminal("expression");
         {
             self.compileTerm();
-            // TODO: (op term)*
+
+            loop {
+                let t = self.token();
+                match t.symbol() {
+                    Some(&o) if OPS.contains(&o) => {
+                        self.cache(t);
+                        self.writeSymbol(o);
+                        self.compileTerm();
+                    },
+                    _ => { self.cache(t); break },
+                }
+            }
         }
         self.closeNonTerminal("expression");
     }
