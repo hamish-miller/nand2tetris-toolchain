@@ -426,15 +426,24 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
         self.openNonTerminal("term");
         {
             let t = self.token();
-            if Some(&'(') == t.symbol() {
-                self.cache(t);
-                self.writeSymbol('(');
-                self.compileExpression();
-                self.writeSymbol(')');
-                self.closeNonTerminal("term");
-                return
-            } else {
-                self.cache(t);
+            match t.symbol() {
+                Some(&'(') => {
+                    self.cache(t);
+                    self.writeSymbol('(');
+                    self.compileExpression();
+                    self.writeSymbol(')');
+                    self.closeNonTerminal("term");
+                    return
+                },
+                Some('-') | Some('~') => {
+                    let c: char = *t.symbol().unwrap();  // Copy
+                    self.cache(t);
+                    self.writeSymbol(c);
+                    self.compileTerm();
+                    self.closeNonTerminal("term");
+                    return
+                },
+                _ => self.cache(t),
             }
 
             self.writeIntegerConstant();
