@@ -1,7 +1,8 @@
 /// JackAnalyzer: Executable for compile .jack source to .xml intermediate.
 
 use std::env;
-use std::path::Path;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 
 use compiler;
 
@@ -14,9 +15,29 @@ fn main() -> Result<(), std::io::Error> {
         std::process::exit(1);
     });
 
-    // TODO: Multiple .jack
-    let path_jack = Path::new(arg);
-    let path_xml = path_jack.with_extension("xml");
+    let targets: Vec<(PathBuf, PathBuf)> = match Path::new(arg) {
+        p if p.is_dir() => {
+            p.read_dir()?
+             .filter_map(Result::ok)
+             .map(|de| de.path())
+             .filter(|path| path.extension() == Some(OsStr::new("jack")))
+             .map(|jack| {let xml = jack.with_extension("xml"); (jack, xml)})
+             .collect()
+        },
+        p if p.is_file() => {
+            vec!((p.to_path_buf(), p.with_extension("xml")))
+        },
+        p => {
+            dbg!(p, p.exists(), p.is_dir(), p.is_file());
+            dbg!(std::env::current_dir().unwrap());
+            vec!()
+        },
+    };
 
-    compiler::analyze(path_jack, &path_xml)
+    for (source, target) in targets.iter() {
+        println!("Compiling {}", source.as_path().to_string_lossy());
+        compiler::analyze(&source, &target)?;
+    }
+
+    Ok(())
 }
