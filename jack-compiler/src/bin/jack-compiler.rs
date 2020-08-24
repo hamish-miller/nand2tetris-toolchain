@@ -1,6 +1,6 @@
-/// JackAnalyzer: Executable for compiling .jack source to .xml intermediate.
+/// JackCompiler: Executable for compiling .jack source to .vm intermediate.
 ///
-/// Usage: jack-analyzer <file.jack | dir>
+/// Usage: jack-compiler <file.jack | dir>
 
 use std::env;
 use std::path::Path;
@@ -12,7 +12,7 @@ fn main() -> Result<(), std::io::Error> {
 
     // Handle args.len(0). Ignore args[2..]
     let arg = args.get(1).unwrap_or_else(|| {
-        println!("Usage: jack-analyzer <file.vm | dir>");
+        println!("Usage: jack-compiler <file.jack | dir>");
         std::process::exit(1);
     });
 
@@ -20,7 +20,7 @@ fn main() -> Result<(), std::io::Error> {
 
     for (source, target) in targets.iter() {
         println!("Compiling {}", source.as_path().to_string_lossy());
-        compiler::analyze(&source, &target)?;
+        compiler::compile(&source, &target)?;
     }
 
     Ok(())
