@@ -8,17 +8,25 @@ pub struct CompilationEngine<T: TokenStream, W: Write> {
     tokens: T,
     writer: W,
     cache: Option<Token>,
+    format: (Option<usize>, &'static str),
 }
 
 impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
     #![allow(non_snake_case)]  // Contract pre-specified
     #![allow(unused_must_use)] // Ignore writeln! Result
 
-    pub fn new(src: T, dst: W) -> Self {
+    pub fn new(src: T, dst: W, format: bool) -> Self {
+        let f = if format {
+            (Some(0), " ")
+        } else {
+            (None, "")
+        };
+
         CompilationEngine {
             tokens: src,
             writer: dst,
             cache: None,
+            format: f,
         }
     }
 
@@ -43,16 +51,46 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
     }
 
     fn openNonTerminal(&mut self, nt: &str) {
+        self.writeIndent();
         writeln!(self.writer, "<{}>", nt);
+        self.incrementIndent();
     }
 
     fn closeNonTerminal(&mut self, nt: &str) {
+        self.decrementIndent();
+        self.writeIndent();
         writeln!(self.writer, "</{}>", nt);
+    }
+
+    fn incrementIndent(&mut self) {
+        if let Some(i) = self.format.0 { self.format.0 = Some(i + 1); }
+    }
+
+    fn decrementIndent(&mut self) {
+        if let Some(i) = self.format.0 { self.format.0 = Some(i - 1); }
+    }
+
+    fn writeIndent(&mut self) {
+        match self.format.0 {
+            None | Some(0) => {},
+            Some(n) => {
+                let mut s = String::new();
+
+                for _ in 0..n {
+                    s.push(' ');
+                    s.push(' ');
+                };
+
+                write!(self.writer, "{}", s);
+            },
+        }
     }
 
     // keyword, symbol, identifier, integerConstant, stringConstant
     fn writeTerminal(&mut self, tag: &str, value: &str) {
-        writeln!(self.writer, "<{}>{}</{}>", tag, value, tag);
+        self.writeIndent();
+        let ws = self.format.1;
+        writeln!(self.writer, "<{}>{}{}{}</{}>", tag, ws, value, ws, tag);
     }
 
     fn writeKeyword(&mut self, k: &str) {

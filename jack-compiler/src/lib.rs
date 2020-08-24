@@ -11,8 +11,8 @@ use engine::CompilationEngine;
 
 pub fn analyze(src_jack: &Path, dst_xml: &Path) -> Result<(), std::io::Error> {
     let tokenizer = JackTokenizer::open(src_jack);
-    let file_xml = File::open(dst_xml)?;
-    let mut engine = CompilationEngine::new(tokenizer, file_xml);
+    let file_xml = File::create(dst_xml)?;
+    let mut engine = CompilationEngine::new(tokenizer, file_xml, true);
 
     engine.compile();
     Ok(())

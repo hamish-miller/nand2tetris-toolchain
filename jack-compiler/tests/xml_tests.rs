@@ -13,7 +13,7 @@ macro_rules! jack_to_xml_test {
 
             let t = JackTokenizer::new(&jack);
             let mut w = Vec::new();
-            let mut e = CompilationEngine::new(t, &mut w);
+            let mut e = CompilationEngine::new(t, &mut w, false);
 
             e.compile();
             let out = std::str::from_utf8(&w).unwrap();
