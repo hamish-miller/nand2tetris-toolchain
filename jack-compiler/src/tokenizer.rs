@@ -229,7 +229,7 @@ pub struct Symbol(pub char);
 const SYMBOLS: [char; 19] = [
     '{', '}', '(', ')', '[', ']', '.',
     ',', ';', '+', '-', '*', '/', '&',
-    '|', '<', '>', '=', '-',
+    '|', '<', '>', '=', '~',
 ];
 
 impl FromStr for Symbol {
