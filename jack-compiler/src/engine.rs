@@ -420,10 +420,23 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
     }
 
     /// integerConstant | stringConstant | keywordConstant |
-    /// varName | varName '[' expression ']' | subroutineCall
+    /// varName | varName '[' expression ']' | subroutineCall |
+    /// '(' expression ')' | unaryOp term
     fn compileTerm(&mut self) {
         self.openNonTerminal("term");
         {
+            let t = self.token();
+            if Some(&'(') == t.symbol() {
+                self.cache(t);
+                self.writeSymbol('(');
+                self.compileExpression();
+                self.writeSymbol(')');
+                self.closeNonTerminal("term");
+                return
+            } else {
+                self.cache(t);
+            }
+
             self.writeIntegerConstant();
             self.writeStringConstant();
             self.writeKeywordConstant();

@@ -1646,6 +1646,65 @@ class Foo {
 
 
 jack_to_xml_test!(
+test_compiler_class_subroutine_term_embedded_expression
+"\
+class Foo {
+    function int bar() {
+        return 2 * (3 + 4);
+    }
+}
+"
+->
+"\
+<class>
+<keyword>class</keyword>
+<identifier>Foo</identifier>
+<symbol>{</symbol>
+<subroutineDec>
+<keyword>function</keyword>
+<keyword>int</keyword>
+<identifier>bar</identifier>
+<symbol>(</symbol>
+<parameterList>
+</parameterList>
+<symbol>)</symbol>
+<subroutineBody>
+<symbol>{</symbol>
+<statements>
+<returnStatement>
+<keyword>return</keyword>
+<expression>
+<term>
+<integerConstant>2</integerConstant>
+</term>
+<symbol>*</symbol>
+<term>
+<symbol>(</symbol>
+<expression>
+<term>
+<integerConstant>3</integerConstant>
+</term>
+<symbol>+</symbol>
+<term>
+<integerConstant>4</integerConstant>
+</term>
+</expression>
+<symbol>)</symbol>
+</term>
+</expression>
+<symbol>;</symbol>
+</returnStatement>
+</statements>
+<symbol>}</symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol>}</symbol>
+</class>
+"
+);
+
+
+jack_to_xml_test!(
 test_compiler_class_subroutine_term_internal_subroutine_call
 "\
 class Foo {
