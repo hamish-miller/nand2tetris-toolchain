@@ -113,35 +113,35 @@ impl FromStr for Comment {
 
 #[derive(Debug, PartialEq)]
 pub enum Token {
-    Keyword(Keyword),
-    Symbol(Symbol),
-    Identifier(Identifier),
-    IntConst(IntConst),
-    StringConst(StringConst),
+    Keyword(String),
+    Symbol(char),
+    Identifier(String),
+    IntConst(String),
+    StringConst(String),
 }
 
 impl FromStr for Token {
     type Err = ParseError;
 
     fn from_str(code: &str) -> Result<Self, Self::Err> {
-        if let Ok(keyword) = code.parse::<Keyword>() {
+        if let Ok(keyword) = parse_keyword(&code) {
             return Ok(Token::Keyword(keyword))
         }
 
-        if let Ok(symbol) = code.parse::<Symbol>() {
+        if let Ok(symbol) = parse_symbol(&code) {
             return Ok(Token::Symbol(symbol))
         }
 
-        if let Ok(identifier) = code.parse::<Identifier>() {
+        if let Ok(identifier) = parse_identifier(&code) {
             return Ok(Token::Identifier(identifier))
         }
 
-        if let Ok(identifier) = code.parse::<IntConst>() {
-            return Ok(Token::IntConst(identifier))
+        if let Ok(int) = parse_int_const(&code) {
+            return Ok(Token::IntConst(int))
         }
 
-        if let Ok(identifier) = code.parse::<StringConst>() {
-            return Ok(Token::StringConst(identifier))
+        if let Ok(string) = parse_string_const(&code) {
+            return Ok(Token::StringConst(string))
         }
 
         Err(Self::Err {})
@@ -151,35 +151,35 @@ impl FromStr for Token {
 impl Token {
     pub fn keyword(&self) -> Option<&str> {
         match self {
-            Token::Keyword(k) => Some(&k.0),
+            Token::Keyword(k) => Some(&k),
             _ => None,
         }
     }
 
     pub fn symbol(&self) -> Option<&char> {
         match self {
-            Token::Symbol(i) => Some(&i.0),
+            Token::Symbol(i) => Some(&i),
             _ => None,
         }
     }
 
     pub fn identifier(&self) -> Option<&str> {
         match self {
-            Token::Identifier(i) => Some(&i.0),
+            Token::Identifier(i) => Some(&i),
             _ => None,
         }
     }
 
     pub fn integer_constant(&self) -> Option<&str> {
         match self {
-            Token::IntConst(i) => Some(&i.0),
+            Token::IntConst(i) => Some(&i),
             _ => None,
         }
     }
 
     pub fn string_constant(&self) -> Option<&str> {
         match self {
-            Token::StringConst(i) => Some(&i.0),
+            Token::StringConst(i) => Some(&i),
             _ => None,
         }
     }
@@ -187,18 +187,16 @@ impl Token {
     fn len(&self) -> usize {
         use Token::*;
         match self {
-            Keyword(k) => k.0.len(),
+            Keyword(k) => k.len(),
             Symbol(_) => 1,
-            Identifier(i) => i.0.len(),
-            IntConst(i) => i.0.to_string().chars().count(),
-            StringConst(s) => s.0.len() + 2,
+            Identifier(i) => i.len(),
+            IntConst(i) => i.chars().count(),
+            StringConst(s) => s.len() + 2,
         }
     }
 }
 
 
-#[derive(Debug, PartialEq)]
-pub struct Keyword(pub String);
 const KEYWORDS: [&'static str; 21] = [
     "class", "constructor", "function",
     "method", "field", "static", "var",
@@ -207,100 +205,68 @@ const KEYWORDS: [&'static str; 21] = [
     "if", "else", "while", "return",
 ];
 
-impl FromStr for Keyword {
-    type Err = ParseError;
+fn parse_keyword(code: &str) -> Result<String, ParseError> {
+    if let Some(i) = code.find(|c: char| !c.is_ascii_alphabetic()) {
+        let word = &code[..i];
 
-    fn from_str(code: &str) -> Result<Self, Self::Err> {
-        if let Some(i) = code.find(|c: char| !c.is_ascii_alphabetic()) {
-            let word = &code[..i];
-
-            if KEYWORDS.contains(&word) {
-                return Ok(Keyword(word.to_string()))
-            }
+        if KEYWORDS.contains(&word) {
+            return Ok(word.to_string())
         }
-
-        Err(Self::Err {})
     }
+
+    Err(ParseError)
 }
 
 
-#[derive(Debug, PartialEq)]
-pub struct Symbol(pub char);
 const SYMBOLS: [char; 19] = [
     '{', '}', '(', ')', '[', ']', '.',
     ',', ';', '+', '-', '*', '/', '&',
     '|', '<', '>', '=', '~',
 ];
 
-impl FromStr for Symbol {
-    type Err = ParseError;
+fn parse_symbol(code: &str) -> Result<char, ParseError> {
+    let c = code.chars().next().unwrap();
 
-    fn from_str(code: &str) -> Result<Self, Self::Err> {
-        let c = code.chars().next().unwrap();
-
-        if SYMBOLS.contains(&c) {
-            Ok(Symbol(c))
-        } else {
-            Err(Self::Err {})
-        }
-
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Identifier(pub String);
-
-impl FromStr for Identifier {
-    type Err = ParseError;
-
-    fn from_str(code: &str) -> Result<Self, Self::Err> {
-        let non_ascii = |c: char| { !(c.is_ascii_alphanumeric() || c == '_') };
-        let c = code.chars().next().unwrap();
-
-        if c.is_ascii_alphabetic() || c == '_' {
-            let until = code.find(non_ascii).unwrap();
-            Ok(Identifier(code[..until].to_string()))
-        } else {
-            Err(Self::Err {})
-        }
-
+    if SYMBOLS.contains(&c) {
+        Ok(c)
+    } else {
+        Err(ParseError)
     }
 }
 
 
-#[derive(Debug, PartialEq)]
-pub struct IntConst(pub String);
+fn parse_identifier(code: &str) -> Result<String, ParseError> {
+    let non_ascii = |c: char| { !(c.is_ascii_alphanumeric() || c == '_') };
+    let c = code.chars().next().unwrap();
 
-impl FromStr for IntConst {
-    type Err = ParseError;
-
-    fn from_str(code: &str) -> Result<Self, Self::Err> {
-        let non_digit = |c: char| { !c.is_ascii_digit() };
-        let c = code.chars().next().unwrap();
-
-        if c.is_ascii_digit() {
-            let until = code.find(non_digit).unwrap();
-            Ok(IntConst(code[..until].to_string()))
-        } else {
-            Err(Self::Err {})
-        }
+    if c.is_ascii_alphabetic() || c == '_' {
+        let until = code.find(non_ascii).unwrap();
+        Ok(code[..until].to_string())
+    } else {
+        Err(ParseError)
     }
 }
 
 
-#[derive(Debug, PartialEq)]
-pub struct StringConst(pub String);
+fn parse_int_const(code: &str) -> Result<String, ParseError> {
+    let non_digit = |c: char| { !c.is_ascii_digit() };
+    let c = code.chars().next().unwrap();
 
-impl FromStr for StringConst {
-    type Err = ParseError;
+    if c.is_ascii_digit() {
+        let until = code.find(non_digit).unwrap();
+        Ok(code[..until].to_string())
+    } else {
+        Err(ParseError)
+    }
+}
 
-    fn from_str(code: &str) -> Result<Self, Self::Err> {
-        if code.chars().next() == Some('"') {
-            let until = code[1..].find('"').unwrap() + 1;
-            Ok(StringConst(code[1..until].to_string()))
-        } else {
-            Err(Self::Err {})
-        }
+
+fn parse_string_const(code: &str) -> Result<String, ParseError> {
+    if code.chars().next() == Some('"') {
+        let until = code[1..].find('"').unwrap() + 1;
+        Ok(code[1..until].to_string())
+    } else {
+        Err(ParseError)
     }
 }
 
@@ -314,7 +280,7 @@ mod tests {
         let mut t = JackTokenizer::new("class Foo {}");
         t.advance();
 
-        assert_eq!(t.token, Some(Token::Keyword(Keyword("class".to_string()))));
+        assert_eq!(t.token, Some(Token::Keyword(String::from("class"))));
     }
 
     #[test]
@@ -322,7 +288,7 @@ mod tests {
         let mut t = JackTokenizer::new("class Foo {}");
         for _ in 0..5 { t.advance(); }
 
-        assert_eq!(t.token, Some(Token::Symbol(Symbol('{'))));
+        assert_eq!(t.token, Some(Token::Symbol('{')));
     }
 
     #[test]
@@ -330,7 +296,7 @@ mod tests {
         let mut t = JackTokenizer::new("class Foo {}");
         for _ in 0..3 { t.advance(); }
 
-        assert_eq!(t.token, Some(Token::Identifier(Identifier("Foo".to_string()))));
+        assert_eq!(t.token, Some(Token::Identifier(String::from("Foo"))));
     }
 
     #[test]
@@ -338,13 +304,13 @@ mod tests {
         let mut t = JackTokenizer::new("let meaning = 42;");
         for _ in 0..7 { t.advance(); }
 
-        assert_eq!(t.token, Some(Token::IntConst(IntConst("42".to_string()))));
+        assert_eq!(t.token, Some(Token::IntConst(String::from("42"))));
     }
     #[test]
     fn test_parse_string_const() {
         let mut t = JackTokenizer::new("let hello = \"world\";");
         for _ in 0..7 { t.advance(); }
 
-        assert_eq!(t.token, Some(Token::StringConst(StringConst("world".to_string()))));
+        assert_eq!(t.token, Some(Token::StringConst(String::from("world"))));
     }
 }
