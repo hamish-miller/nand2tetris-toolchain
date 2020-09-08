@@ -303,3 +303,48 @@ impl FromStr for StringConst {
         }
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_keyword() {
+        let mut t = JackTokenizer::new("class Foo {}");
+        t.advance();
+
+        assert_eq!(t.token, Some(Token::Keyword(Keyword("class".to_string()))));
+    }
+
+    #[test]
+    fn test_parse_symbol() {
+        let mut t = JackTokenizer::new("class Foo {}");
+        for _ in 0..5 { t.advance(); }
+
+        assert_eq!(t.token, Some(Token::Symbol(Symbol('{'))));
+    }
+
+    #[test]
+    fn test_parse_identifier() {
+        let mut t = JackTokenizer::new("class Foo {}");
+        for _ in 0..3 { t.advance(); }
+
+        assert_eq!(t.token, Some(Token::Identifier(Identifier("Foo".to_string()))));
+    }
+
+    #[test]
+    fn test_parse_int_const() {
+        let mut t = JackTokenizer::new("let meaning = 42;");
+        for _ in 0..7 { t.advance(); }
+
+        assert_eq!(t.token, Some(Token::IntConst(IntConst("42".to_string()))));
+    }
+    #[test]
+    fn test_parse_string_const() {
+        let mut t = JackTokenizer::new("let hello = \"world\";");
+        for _ in 0..7 { t.advance(); }
+
+        assert_eq!(t.token, Some(Token::StringConst(StringConst("world".to_string()))));
+    }
+}
