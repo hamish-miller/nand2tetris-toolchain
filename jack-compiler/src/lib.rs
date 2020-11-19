@@ -6,9 +6,11 @@ use std::path::{Path, PathBuf};
 
 pub mod tokenizer;
 pub mod engine;
+pub mod symboltable;
 
 use tokenizer::JackTokenizer;
 use engine::CompilationEngine;
+use symboltable::SymbolTable;
 
 pub fn analyze(src_jack: &Path, dst_xml: &Path) -> Result<(), std::io::Error> {
     let tokenizer = JackTokenizer::open(src_jack);
@@ -22,6 +24,11 @@ pub fn analyze(src_jack: &Path, dst_xml: &Path) -> Result<(), std::io::Error> {
 
 #[allow(unused)]
 pub fn compile(src_jack: &Path, dst_xml: &Path) -> Result<(), std::io::Error> {
+    let tokenizer = JackTokenizer::open(src_jack);
+    let file_xml = File::create(dst_xml)?;
+    let mut engine = CompilationEngine::new(tokenizer, file_xml, true)
+                         .with_symboltable(SymbolTable::new());
+    engine.compile();
     Ok(())
 }
 

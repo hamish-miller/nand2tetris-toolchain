@@ -3,12 +3,14 @@
 use std::io::Write;
 
 use crate::tokenizer::{Token, TokenStream};
+use crate::symboltable::SymbolTable;
 
 pub struct CompilationEngine<T: TokenStream, W: Write> {
     tokens: T,
     writer: W,
     cache: Option<Token>,
     format: (Option<usize>, &'static str),
+    symbol: Option<SymbolTable>,
 }
 
 impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
@@ -27,7 +29,13 @@ impl<T, W> CompilationEngine<T, W> where T: TokenStream, W: Write {
             writer: dst,
             cache: None,
             format: f,
+            symbol: None,
         }
+    }
+
+    pub fn with_symboltable(mut self, symbol: SymbolTable) -> Self {
+        self.symbol = Some(symbol);
+        self
     }
 
     pub fn compile(&mut self) {
